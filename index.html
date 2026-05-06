@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>邻里邦 AI 智能客服 · 全流程交互</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif; }
+  body {
+    background: linear-gradient(135deg, #1a1f3a 0%, #2a2f5a 50%, #1a1f3a 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0;
+  }
+  .page-title {
+    color: #fff;
+    text-align: center;
+    margin-bottom: 16px;
+    opacity: 0.9;
+  }
+  .page-title h1 { margin: 0 0 6px; font-size: 18px; font-weight: 600; }
+  .page-title p { margin: 0; font-size: 12px; opacity: 0.7; }
+
+  /* Phone frame */
+  .phone {
+    width: 375px;
+    height: 812px;
+    background: #fff;
+    border-radius: 44px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 0 11px #1a1d26, 0 0 0 13px #2a2f3a;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Notch */
+  .notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 28px;
+    background: #1a1d26;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+    z-index: 1000;
+  }
+  /* Status bar */
+  .status-bar {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px 0 28px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1d26;
+    position: relative;
+    z-index: 100;
+  }
+  .status-icons { display: flex; gap: 5px; align-items: center; font-size: 14px;}
+  .signal { display: inline-flex; gap: 2px; align-items: flex-end;}
+  .signal i { display: block; width: 3px; background: #1a1d26; border-radius: 1px;}
+  .signal i:nth-child(1){ height: 4px;} .signal i:nth-child(2){ height: 6px;} .signal i:nth-child(3){ height: 8px;} .signal i:nth-child(4){ height: 10px;}
+  .battery { width: 24px; height: 12px; border: 1.5px solid #1a1d26; border-radius: 3px; position: relative; padding: 1px;}
+  .battery::after { content:""; position:absolute; right:-3px; top:3px; width:2px; height:4px; background:#1a1d26; border-radius:0 1px 1px 0;}
+  .battery i { display:block; height:100%; width:80%; background:#1a1d26; border-radius:1px;}
+
+  /* Main scroll area */
+  .screen {
+    height: calc(100% - 44px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: linear-gradient(180deg, #fce8d4 0%, #fdf3e6 220px, #fafbfd 380px);
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+  }
+  .screen::-webkit-scrollbar { display: none; }
+
+  /* Top bar */
+  .top-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 18px 12px;}
+  .top-tabs { display: flex; gap: 18px; }
+  .top-tabs span { font-size: 17px; color: #888; font-weight: 500; }
+  .top-tabs span.active { color: #1a1d26; font-weight: 700; font-size: 19px; position: relative;}
+  .top-tabs span.active::after { content:""; position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); width:18px; height:3px; background:#c9a86a; border-radius:2px;}
+  .top-more { display: flex; align-items: center; gap: 10px; font-size: 16px; color: #888;}
+  .top-more::before, .top-more::after { content:"·"; font-size: 22px; line-height: 0;}
+
+  /* Community */
+  .community { display: flex; align-items: center; gap: 6px; padding: 0 18px 10px; font-size: 13px; color: #5a5a5a;}
+  .community::before { content: "📍"; font-size: 12px; }
+
+  /* Banner */
+  .banner {
+    margin: 0 14px;
+    height: 90px;
+    background: linear-gradient(135deg, #4a3416 0%, #2c1f0e 100%);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    color: #f5d68a;
+    padding: 14px 16px;
+  }
+  .banner::before { content:"🎁"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 50px; opacity: 0.4; }
+  .banner-tag { font-size: 11px; background: rgba(245,214,138,0.2); padding: 2px 8px; border-radius: 8px; display: inline-block;}
+  .banner-title { font-size: 15px; font-weight: 700; margin-top: 6px; line-height: 1.3;}
+  .banner-sub { font-size: 12px; margin-top: 2px;}
+  .banner-btn { position: absolute; bottom: 10px; left: 16px; background: #f5d68a; color: #2c1f0e; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 10px;}
+
+  /* Promo cards */
+  .promo-row { display: flex; gap: 8px; padding: 10px 14px 0; }
+  .promo-card { flex: 1; height: 64px; border-radius: 10px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; }
+  .promo-jd { background: linear-gradient(135deg, #ffe5e5, #ffd1d1); }
+  .promo-llb { background: linear-gradient(135deg, #fde4d0, #f9c995); }
+  .promo-icon { width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0; display:flex; align-items:center; justify-content:center; font-size: 22px;}
+  .promo-jd .promo-icon { background: #fff;}
+  .promo-llb .promo-icon { background: #fff;}
+  .promo-text strong { font-size: 13px; color: #c2410c; display: block; line-height: 1.2;}
+  .promo-llb .promo-text strong { color: #ad6b1f;}
+  .promo-text span { font-size: 10px; color: #999; }
+
+  /* Service grid */
+  .service-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px 4px; padding: 14px 8px 6px; }
+  .service-item { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer;}
+  .service-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff;}
+  .si-1 { background: linear-gradient(135deg, #ffd17a, #ff9a4a);}
+  .si-2 { background: linear-gradient(135deg, #ffc5c5, #ff7a7a);}
+  .si-3 { background: linear-gradient(135deg, #ffe1c4, #ffb46a);}
+  .si-4 { background: linear-gradient(135deg, #b8a888, #8a7a5a);}
+  .si-5 { background: linear-gradient(135deg, #ffd6a5, #ff9a4a);}
+  .service-item span { font-size: 11px; color: #1a1d26; }
+
+  /* Brand grid */
+  .brand-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px 4px; padding: 6px 8px 14px; }
+  .brand-item { display: flex; flex-direction: column; align-items: center; gap: 6px;}
+  .brand-icon { width: 38px; height: 38px; border-radius: 50%; display:flex; align-items:center; justify-content:center; font-size: 16px; color: #fff; font-weight: 700;}
+  .b-vip { background: #ff4d4d;}
+  .b-jd { background: #e1251b;}
+  .b-mt { background: #fec107; color: #fff;}
+  .b-dd { background: #ff6900;}
+  .b-xc { background: #2577e3;}
+  .b-hf { background: #6c5ce7;}
+  .b-zy { background: #ff5252;}
+  .b-xm { background: #ff7e26;}
+  .b-tx { background: #00b894;}
+  .b-all { background: #94a3b8;}
+  .brand-item span { font-size: 11px; color: #4a4a4a;}
+
+  /* Tutorial */
+  .tutorial { margin: 8px 14px 80px; }
+  .tutorial-title { font-size: 14px; font-weight: 700; color: #1a1d26; margin-bottom: 8px;}
+  .tutorial-card { height: 140px; border-radius: 14px; background: linear-gradient(135deg, #4a5a7a, #2a3a5a); position: relative; overflow: hidden; color: #fff; padding: 16px;}
+  .tutorial-card::after { content: ""; position: absolute; right: 0; bottom: 0; width: 60%; height: 100%; background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%23ffffff10'/></svg>"); background-size: cover;}
+  .play-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; backdrop-filter: blur(10px);}
+  .play-btn::after { content:""; width:0; height:0; border-left: 12px solid #fff; border-top: 8px solid transparent; border-bottom: 8px solid transparent; margin-left: 3px;}
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 64px;
+    background: #fff;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding-bottom: 12px;
+    box-shadow: 0 -1px 0 rgba(0,0,0,0.05);
+    z-index: 50;
+  }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; color: #999; flex: 1;}
+  .nav-item.active { color: #c9a86a;}
+  .nav-icon { font-size: 20px;}
+  .nav-center {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f5d68a, #c9a86a);
+    color: #fff;
+    margin-top: -28px;
+    display:flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    box-shadow: 0 6px 18px rgba(201,168,106,0.4);
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .nav-center::before { content:"🔑"; font-size: 22px; margin-bottom: 1px;}
+
+  /* ====================== AI ASSISTANT ====================== */
+  /* Floating ball */
+  .ai-ball {
+    position: absolute;
+    right: 14px;
+    bottom: 100px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #5B8CFF 0%, #7A5CFF 100%);
+    box-shadow: 0 8px 24px rgba(91,140,255,0.5), 0 0 0 1px rgba(255,255,255,0.2) inset;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 200;
+    animation: pulse 3s ease-in-out infinite;
+    transition: transform 0.3s, opacity 0.3s;
+  }
+  .ai-ball:active { transform: scale(0.92);}
+  .ai-ball.hidden { transform: scale(0); opacity: 0; pointer-events: none;}
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 8px 24px rgba(91,140,255,0.5), 0 0 0 0 rgba(91,140,255,0.4);}
+    50% { box-shadow: 0 8px 24px rgba(91,140,255,0.5), 0 0 0 12px rgba(91,140,255,0);}
+  }
+  .ai-ball-icon {
+    width: 32px; height: 32px;
+    background: #fff;
+    border-radius: 50%;
+    position: relative;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .ai-ball-icon::before, .ai-ball-icon::after {
+    content:""; position: absolute; width: 5px; height: 5px; border-radius: 50%; background: #5B8CFF; top: 11px;
+  }
+  .ai-ball-icon::before { left: 9px;}
+  .ai-ball-icon::after { right: 9px;}
+  .ai-ball-icon i { display: block; width: 12px; height: 2px; background: #5B8CFF; border-radius: 1px; margin-top: 14px;}
+
+  /* Tooltip bubble next to ball */
+  .ai-tip {
+    position: absolute;
+    right: 78px;
+    bottom: 110px;
+    background: linear-gradient(135deg, #2a2f5a, #1f2447);
+    color: #fff;
+    padding: 8px 12px 8px 36px;
+    border-radius: 18px;
+    font-size: 12px;
+    z-index: 199;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+    animation: floatTip 2s ease-in-out infinite;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  .ai-tip::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #5B8CFF, #7A5CFF);
+  }
+  .ai-tip::after {
+    content: "Hi~";
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .ai-tip-close {
+    position: absolute;
+    right: -4px;
+    top: -4px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.4);
+    color: #fff;
+    font-size: 12px;
+    display:flex; align-items:center; justify-content:center;
+    cursor: pointer;
+  }
+  @keyframes floatTip {
+    0%,100% { transform: translateY(0);}
+    50% { transform: translateY(-4px);}
+  }
+  .ai-tip.hidden { opacity: 0; transform: translateY(8px); pointer-events: none;}
+
+  /* Chat sheet */
+  .chat-mask {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 300;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .chat-mask.show { opacity: 1; pointer-events: auto;}
+
+  .chat-sheet {
+    position: absolute;
+    left: 12px; right: 12px;
+    bottom: 12px;
+    background: linear-gradient(180deg, #2a2f5a 0%, #1f2447 100%);
+    border-radius: 22px;
+    z-index: 310;
+    box-shadow: 0 -8px 30px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06) inset;
+    display: flex;
+    flex-direction: column;
+    max-height: 75%;
+    transform: translateY(110%);
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    overflow: hidden;
+  }
+  .chat-sheet.show { transform: translateY(0);}
+
+  .chat-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .chat-title { display: flex; align-items: center; gap: 8px; color: #fff; font-size: 14px; font-weight: 600;}
+  .chat-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #5B8CFF, #7A5CFF);
+    display:flex; align-items:center; justify-content:center;
+    font-size: 13px;
+  }
+  .chat-avatar::before {
+    content: "";
+    width: 18px; height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    position: relative;
+    display: block;
+  }
+  .chat-close {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    display:flex; align-items:center; justify-content:center;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  .chat-body {
+    flex: 1;
+    padding: 14px 14px 4px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    min-height: 200px;
+  }
+  .chat-body::-webkit-scrollbar { display: none;}
+
+  /* Messages */
+  .msg { margin-bottom: 12px; max-width: 78%; clear: both; animation: slideIn 0.25s ease;}
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px);}
+    to { opacity: 1; transform: translateY(0);}
+  }
+  .msg.bot { float: left;}
+  .msg.user { float: right;}
+  .msg-row { clear: both;}
+
+  .bubble {
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.55;
+    word-break: break-word;
+  }
+  .msg.bot .bubble {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border-top-left-radius: 4px;
+  }
+  .msg.user .bubble {
+    background: linear-gradient(135deg, #5B8CFF, #7A5CFF);
+    color: #fff;
+    border-top-right-radius: 4px;
+  }
+
+  .quick-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px;}
+  .quick-item {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #c5cfff;
+    padding: 9px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .quick-item:active { background: rgba(91,140,255,0.2);}
+  .quick-item::after { content: "›"; color: #6c7aaf; font-size: 18px;}
+  .quick-item-tag {
+    display: inline-block;
+    background: linear-gradient(135deg, #5B8CFF, #7A5CFF);
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+  }
+
+  /* Thinking */
+  .thinking {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    background: rgba(91,140,255,0.08);
+    border: 1px solid rgba(91,140,255,0.15);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 12px;
+    align-items: flex-start;
+  }
+  .thinking-row { display: flex; align-items: center; gap: 8px;}
+  .thinking-spark {
+    width: 18px; height: 18px;
+    background: linear-gradient(135deg, #5B8CFF, #7A5CFF);
+    border-radius: 4px;
+    position: relative;
+    animation: rotate 1.5s linear infinite;
+    flex-shrink: 0;
+  }
+  .thinking-spark::before {
+    content:"✦"; position:absolute; inset:0; color:#fff; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  @keyframes rotate { to { transform: rotate(360deg);} }
+  .thinking-dots { display: inline-flex; gap: 3px; margin-left: 4px;}
+  .thinking-dots i { width: 4px; height: 4px; border-radius: 50%; background: #fff; animation: bounce 1.4s ease-in-out infinite;}
+  .thinking-dots i:nth-child(1) { animation-delay: 0s;}
+  .thinking-dots i:nth-child(2) { animation-delay: 0.2s;}
+  .thinking-dots i:nth-child(3) { animation-delay: 0.4s;}
+  @keyframes bounce { 0%,100% { opacity: 0.3; transform: translateY(0);} 50% { opacity: 1; transform: translateY(-4px);} }
+  .stop-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 14px;
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  /* Answer card */
+  .answer {
+    background: rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 12px 14px;
+    color: #fff;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .answer-title { font-weight: 700; margin-bottom: 6px;}
+  .answer ol { padding-left: 22px; margin: 6px 0;}
+  .answer li { margin-bottom: 3px;}
+  .answer-actions { display: flex; gap: 8px; margin-top: 12px;}
+  .answer-btn {
+    flex: 1;
+    padding: 9px 0;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .ab-primary {
+    background: linear-gradient(135deg, #f5d68a, #c9a86a);
+    color: #2a2f5a;
+  }
+  .ab-secondary {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .answer-btn:active { transform: scale(0.96);}
+
+  .feedback {
+    display: flex; gap: 12px; margin-top: 10px; padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 12px;
+    color: #c5cfff;
+    align-items: center;
+  }
+  .feedback span:first-child { flex: 1;}
+  .fb-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 4px 10px;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+
+  /* Ticket form (in-chat) */
+  .ticket {
+    background: rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 12px;
+    color: #fff;
+    font-size: 12px;
+  }
+  .ticket-title { font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; font-size: 13px;}
+  .ticket-title::before { content:"🛠️";}
+  .ticket-row { margin-bottom: 10px;}
+  .ticket-label { color: #c5cfff; margin-bottom: 4px; font-size: 11px;}
+  .ticket-input, .ticket-select, .ticket-textarea {
+    width: 100%;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: inherit;
+    outline: none;
+  }
+  .ticket-input:focus, .ticket-textarea:focus { border-color: #5B8CFF;}
+  .ticket-textarea { resize: none; height: 60px;}
+  .ticket-tags { display: flex; flex-wrap: wrap; gap: 6px;}
+  .ticket-tag {
+    padding: 5px 10px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .ticket-tag.active {
+    background: linear-gradient(135deg, #5B8CFF, #7A5CFF);
+    border-color: transparent;
+  }
+  .ticket-upload {
+    width: 56px; height: 56px;
+    border: 1px dashed rgba(255,255,255,0.2);
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    flex-direction: column;
+    color: #c5cfff;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .ticket-upload span { font-size: 9px; margin-top: 2px;}
+  .ticket-submit {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #5B8CFF, #7A5CFF);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+
+  /* Ticket result */
+  .ticket-result {
+    background: linear-gradient(135deg, rgba(91,140,255,0.15), rgba(122,92,255,0.15));
+    border: 1px solid rgba(91,140,255,0.3);
+    border-radius: 14px;
+    padding: 14px;
+    color: #fff;
+    font-size: 12px;
+  }
+  .ticket-result-icon {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 18px; margin-bottom: 8px;
+  }
+  .ticket-result-id {
+    font-family: 'Courier New', monospace;
+    background: rgba(0,0,0,0.2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+  }
+  .ticket-result-row { display: flex; justify-content: space-between; margin-bottom: 4px;}
+  .ticket-result-row span:first-child { color: #c5cfff;}
+
+  /* Input bar */
+  .chat-input-bar {
+    padding: 8px 12px 14px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.15));
+  }
+  .voice-btn {
+    flex: 1;
+    height: 40px;
+    background: linear-gradient(135deg, #5B8CFF, #7A5CFF);
+    border-radius: 20px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .voice-btn:active { transform: scale(0.97); filter: brightness(0.9);}
+  .voice-btn.recording { background: linear-gradient(135deg, #ef4444, #dc2626); animation: recordPulse 1s infinite;}
+  @keyframes recordPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5);} 50% { box-shadow: 0 0 0 8px rgba(239,68,68,0);} }
+  .voice-btn::before { content: "🎙"; font-size: 14px;}
+
+  .input-mode-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .text-input {
+    flex: 1;
+    height: 40px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    color: #fff;
+    padding: 0 14px;
+    outline: none;
+    font-size: 13px;
+    font-family: inherit;
+    display: none;
+  }
+  .text-input::placeholder { color: rgba(255,255,255,0.4);}
+  .text-input:focus { border-color: #5B8CFF;}
+  .send-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #5B8CFF, #7A5CFF);
+    color: #fff;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-size: 16px;
+  }
+  .chat-input-bar.text-mode .voice-btn { display: none;}
+  .chat-input-bar.text-mode .text-input { display: block;}
+  .chat-input-bar.text-mode .send-btn { display: flex;}
+
+  /* Toast */
+  .toast {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .toast.show { opacity: 1;}
+
+  /* Service grid in welcome */
+  .svc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px;}
+  .svc-item {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 10px 12px;
+    color: #c5cfff;
+    font-size: 12px;
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .svc-item:active { background: rgba(91,140,255,0.2);}
+  .svc-item-icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, rgba(91,140,255,0.25), rgba(122,92,255,0.25));
+  }
+  .svc-item-text { flex: 1; line-height: 1.3;}
+  .svc-item-text b { display: block; font-weight: 600; color: #fff; font-size: 12px;}
+  .svc-item-text small { font-size: 10px; opacity: 0.6;}
+
+  /* Event/parking/general list cards */
+  .info-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #fff;
+    cursor: pointer;
+  }
+  .info-card-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;}
+  .info-card-meta { opacity: 0.7; font-size: 11px; line-height: 1.6;}
+  .info-card-tag {
+    display: inline-block;
+    background: rgba(91,140,255,0.2);
+    color: #c5cfff;
+    font-size: 10px;
+    padding: 1px 8px;
+    border-radius: 6px;
+    margin-right: 4px;
+  }
+  .info-card-tag.gold { background: rgba(245,214,138,0.2); color: #f5d68a;}
+  .info-card-tag.green { background: rgba(74,222,128,0.2); color: #7ad48a;}
+  .info-card-tag.red { background: rgba(239,68,68,0.2); color: #fca5a5;}
+
+  /* QR code mock */
+  .qr-mock {
+    width: 140px; height: 140px;
+    background: #fff;
+    border-radius: 8px;
+    margin: 12px auto 8px;
+    display: flex; align-items: center; justify-content: center;
+    background-image:
+      repeating-conic-gradient(#000 0% 25%, transparent 0% 50%);
+    background-size: 14px 14px;
+    background-position: 0 0;
+    position: relative;
+  }
+  .qr-mock::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.5) 30% 70%, transparent 70%),
+      radial-gradient(circle at 20% 20%, #000 8%, transparent 8%),
+      radial-gradient(circle at 80% 20%, #000 8%, transparent 8%),
+      radial-gradient(circle at 20% 80%, #000 8%, transparent 8%);
+  }
+
+  /* Voice recording overlay */
+  .voice-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    z-index: 999;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+  }
+  .voice-overlay.show { display: flex;}
+  .voice-anim { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #5B8CFF, #7A5CFF); display: flex; align-items: center; justify-content: center; font-size: 40px; animation: voicePulse 1s infinite;}
+  @keyframes voicePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(91,140,255,0.6);} 50% { box-shadow: 0 0 0 30px rgba(91,140,255,0);} }
+  .voice-text { margin-top: 20px; font-size: 14px;}
+  .voice-tip { margin-top: 8px; font-size: 12px; opacity: 0.7;}
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <h1>邻里邦 · AI 智能客服全流程</h1>
+  <p>点击右下角悬浮球唤起 · 全流程在对话窗内完成 · 无需跳转</p>
+</div>
+
+<div class="phone">
+  <div class="notch"></div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div>9:41</div>
+    <div class="status-icons">
+      <span class="signal"><i></i><i></i><i></i><i></i></span>
+      <span style="font-size:12px;">📶</span>
+      <span class="battery"><i></i></span>
+    </div>
+  </div>
+
+  <!-- Screen content -->
+  <div class="screen" id="screen">
+
+    <div class="top-bar">
+      <div class="top-tabs">
+        <span class="active">服务</span>
+        <span>美业</span>
+        <span>美家</span>
+      </div>
+      <div class="top-more"></div>
+    </div>
+
+    <div class="community">时代玫瑰园二期</div>
+
+    <div class="banner">
+      <span class="banner-tag">业主畅行礼</span>
+      <div class="banner-title">滴滴畅行好券<br>最高立省120元</div>
+      <div class="banner-btn">低至3.8元起</div>
+    </div>
+
+    <div class="promo-row">
+      <div class="promo-card promo-jd">
+        <div class="promo-icon">🛒</div>
+        <div class="promo-text"><strong>京东</strong><span>领券中心 · 点击立即领</span></div>
+      </div>
+      <div class="promo-card promo-llb">
+        <div class="promo-icon">🎓</div>
+        <div class="promo-text"><strong>邻里邦</strong><span>新生学堂 · 上手全攻略</span></div>
+      </div>
+    </div>
+
+    <div class="service-grid">
+      <div class="service-item" onclick="quickAsk('物业费如何缴纳？')">
+        <div class="service-icon si-1">💳</div><span>物业缴费</span>
+      </div>
+      <div class="service-item" onclick="quickAsk('如何报修？')">
+        <div class="service-icon si-2">🔧</div><span>物业服务</span>
+      </div>
+      <div class="service-item">
+        <div class="service-icon si-3">📋</div><span>预报管理费</span>
+      </div>
+      <div class="service-item" onclick="quickAsk('访客邀请操作步骤？')">
+        <div class="service-icon si-4">👥</div><span>访客邀请</span>
+      </div>
+      <div class="service-item">
+        <div class="service-icon si-5">🏠</div><span>邻里置业</span>
+      </div>
+    </div>
+
+    <div class="brand-grid">
+      <div class="brand-item"><div class="brand-icon b-vip">唯</div><span>唯品会</span></div>
+      <div class="brand-item"><div class="brand-icon b-jd">京</div><span>京东</span></div>
+      <div class="brand-item"><div class="brand-icon b-mt">美</div><span>美团外卖</span></div>
+      <div class="brand-item"><div class="brand-icon b-dd">滴</div><span>滴滴打车</span></div>
+      <div class="brand-item"><div class="brand-icon b-xc">携</div><span>携程</span></div>
+      <div class="brand-item"><div class="brand-icon b-hf">话</div><span>话费充值</span></div>
+      <div class="brand-item"><div class="brand-icon b-zy">作</div><span>作业帮</span></div>
+      <div class="brand-item"><div class="brand-icon b-xm">喜</div><span>喜马拉雅</span></div>
+      <div class="brand-item"><div class="brand-icon b-tx">腾</div><span>腾讯</span></div>
+      <div class="brand-item"><div class="brand-icon b-all">全</div><span>全部</span></div>
+    </div>
+
+    <div class="tutorial">
+      <div class="tutorial-title">新手攻略</div>
+      <div class="tutorial-card">
+        <div class="play-btn"></div>
+      </div>
+    </div>
+
+    <!-- AI Tip bubble -->
+    <div class="ai-tip" id="aiTip">
+      Hi~ 有什么可以帮您？
+      <div class="ai-tip-close" onclick="event.stopPropagation();hideTip();">×</div>
+    </div>
+
+    <!-- AI Floating Ball -->
+    <div class="ai-ball" id="aiBall" onclick="openChat()">
+      <div class="ai-ball-icon"><i></i></div>
+    </div>
+
+    <!-- Chat sheet -->
+    <div class="chat-mask" id="chatMask" onclick="closeChat()"></div>
+    <div class="chat-sheet" id="chatSheet">
+      <div class="chat-header">
+        <div class="chat-title">
+          <div class="chat-avatar"></div>
+          邻里邦 AI 助手
+        </div>
+        <div class="chat-close" onclick="closeChat()">×</div>
+      </div>
+      <div class="chat-body" id="chatBody"></div>
+      <div class="chat-input-bar" id="inputBar">
+        <div class="voice-btn" id="voiceBtn"
+             ontouchstart="startVoice(event)" ontouchend="stopVoice(event)"
+             onmousedown="startVoice(event)" onmouseup="stopVoice(event)" onmouseleave="cancelVoice(event)">
+          按住说话
+        </div>
+        <input type="text" class="text-input" id="textInput" placeholder="请输入您的问题..." onkeydown="if(event.key==='Enter')sendText()">
+        <div class="send-btn" id="sendBtn" onclick="sendText()">→</div>
+        <div class="input-mode-btn" onclick="toggleInputMode()" id="modeBtn">⌨</div>
+      </div>
+    </div>
+
+    <!-- Voice overlay -->
+    <div class="voice-overlay" id="voiceOverlay">
+      <div class="voice-anim">🎙</div>
+      <div class="voice-text" id="voiceText">正在听您说话...</div>
+      <div class="voice-tip">松开发送 · 上滑取消</div>
+    </div>
+
+    <!-- Bottom nav -->
+    <div class="bottom-nav">
+      <div class="nav-item active">
+        <div class="nav-icon">🏠</div>
+        <div>首页</div>
+      </div>
+      <div class="nav-center">开门</div>
+      <div class="nav-item">
+        <div class="nav-icon">👤</div>
+        <div>我的</div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
+
+<div class="page-title" style="margin-top: 20px;">
+  <p>设计稿色值：渐变 #5B8CFF → #7A5CFF · 卡片 #2A2F5A · 强调色 #c9a86a</p>
+</div>
+
+<script>
+/* ============================================================
+   Chat / AI assistant logic
+   ============================================================ */
+const chatBody = document.getElementById('chatBody');
+const chatSheet = document.getElementById('chatSheet');
+const chatMask = document.getElementById('chatMask');
+const aiBall = document.getElementById('aiBall');
+const aiTip = document.getElementById('aiTip');
+const inputBar = document.getElementById('inputBar');
+const textInput = document.getElementById('textInput');
+const modeBtn = document.getElementById('modeBtn');
+const toast = document.getElementById('toast');
+const voiceOverlay = document.getElementById('voiceOverlay');
+
+let chatStarted = false;
+let idleTimer = null;
+
+// Knowledge base - 8 core services, all closed-loop in chat
+const KB = {
+  '物业费': {
+    title: '物业缴费',
+    intro: '我可以直接在这里帮您完成缴费，无需跳转页面。',
+    actions: [{label: '查看账单去缴费', primary: true, action: 'viewBill'}, {label: '缴费记录', primary: false, action: 'payHistory'}]
+  },
+  '预缴': {
+    title: '预缴管理费',
+    intro: '预缴可享 9.5 折优惠，最长可预缴 24 个月。',
+    actions: [{label: '立即预缴', primary: true, action: 'prepayForm'}, {label: '查看余额', primary: false, action: 'viewBalance'}]
+  },
+  '报修': {
+    title: '报修服务',
+    intro: '直接在对话窗内提交报修工单，我会为您加急派单。',
+    actions: [{label: '立即报修', primary: true, action: 'createTicket'}, {label: '查看历史', primary: false, action: 'viewHistory'}]
+  },
+  '访客': {
+    title: '访客邀请',
+    intro: '在线生成邀请二维码，访客凭码即可通行。',
+    actions: [{label: '邀请访客', primary: true, action: 'inviteForm'}, {label: '访客记录', primary: false, action: 'visitorList'}]
+  },
+  '装修': {
+    title: '装修申请',
+    intro: '装修需提前 5 个工作日申请，我可以帮您线上提交。',
+    actions: [{label: '提交装修申请', primary: true, action: 'renovationForm'}, {label: '装修须知', primary: false, action: 'renovationGuide'}]
+  },
+  '放行条': {
+    title: '放行条申请',
+    intro: '搬出大件物品需办理放行条，可在线申请并生成电子放行码。',
+    actions: [{label: '申请放行条', primary: true, action: 'releaseForm'}, {label: '我的放行条', primary: false, action: 'releaseList'}]
+  },
+  '车位': {
+    title: '车位管理',
+    intro: '可查询/续费车位、绑定车牌、办理月租。',
+    actions: [{label: '我的车位', primary: true, action: 'parkingList'}, {label: '绑定车牌', primary: false, action: 'bindPlateForm'}]
+  }
+};
+
+function showToast(text) {
+  toast.textContent = text;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1600);
+}
+
+function hideTip() { aiTip.classList.add('hidden'); }
+
+function scrollToBottom() {
+  setTimeout(() => { chatBody.scrollTop = chatBody.scrollHeight; }, 30);
+}
+
+function appendNode(html) {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-row';
+  wrap.innerHTML = html;
+  chatBody.appendChild(wrap);
+  scrollToBottom();
+  return wrap;
+}
+
+function botMsg(html) {
+  return appendNode(`<div class="msg bot"><div class="bubble">${html}</div></div>`);
+}
+function userMsg(text) {
+  return appendNode(`<div class="msg user"><div class="bubble">${text}</div></div>`);
+}
+
+function botCard(html) {
+  return appendNode(`<div class="msg bot" style="max-width:88%;">${html}</div>`);
+}
+
+/* ---------------- Open / close ---------------- */
+function openChat() {
+  hideTip();
+  aiBall.classList.add('hidden');
+  chatMask.classList.add('show');
+  chatSheet.classList.add('show');
+  if (!chatStarted) {
+    chatStarted = true;
+    showWelcome();
+  }
+  resetIdle();
+}
+
+function closeChat() {
+  chatMask.classList.remove('show');
+  chatSheet.classList.remove('show');
+  setTimeout(() => { aiBall.classList.remove('hidden'); }, 250);
+  clearTimeout(idleTimer);
+}
+
+function resetIdle() {
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    showToast('助手已自动收起');
+    closeChat();
+  }, 60000);
+}
+
+/* ---------------- Welcome ---------------- */
+function showWelcome() {
+  const services = [
+    {icon:'💳', name:'物业缴费', desc:'账单缴费',  q:'物业费如何缴纳？'},
+    {icon:'📅', name:'预缴管理费', desc:'享9.5折', q:'我要预缴管理费'},
+    {icon:'🔧', name:'报修服务', desc:'在线报修', q:'我要报修'},
+    {icon:'👥', name:'访客邀请', desc:'生成通行码', q:'我要邀请访客'},
+    {icon:'🏗️', name:'装修申请', desc:'线上提交', q:'我要申请装修'},
+    {icon:'📋', name:'放行条申请', desc:'电子放行', q:'我要办放行条'},
+    {icon:'🚗', name:'车位管理', desc:'车位续费', q:'我要管理车位'}
+  ];
+  const grid = services.map(s=>`<div class="svc-item" onclick="quickAsk('${s.q}')">
+      <div class="svc-item-icon">${s.icon}</div>
+      <div class="svc-item-text"><b>${s.name}</b><small>${s.desc}</small></div>
+    </div>`).join('');
+  const html = `您好，我是您的 AI 助手 ✨<br>所有服务都可在对话内完成，无需跳转。
+    <div style="margin-top:10px;"><span class="quick-item-tag">全部服务</span></div>
+    <div class="svc-grid">${grid}</div>`;
+  botMsg(html);
+}
+
+/* ---------------- Quick ask from outside ---------------- */
+function quickAsk(text) {
+  if (!chatStarted) openChat();
+  else { /* already open */ }
+  setTimeout(() => {
+    userMsg(text);
+    handleAsk(text);
+  }, chatStarted ? 0 : 350);
+}
+
+/* ---------------- Send text ---------------- */
+function sendText() {
+  const v = textInput.value.trim();
+  if (!v) return;
+  textInput.value = '';
+  userMsg(v);
+  handleAsk(v);
+}
+
+function toggleInputMode() {
+  inputBar.classList.toggle('text-mode');
+  modeBtn.textContent = inputBar.classList.contains('text-mode') ? '🎙' : '⌨';
+  if (inputBar.classList.contains('text-mode')) setTimeout(() => textInput.focus(), 100);
+}
+
+/* ---------------- Voice ---------------- */
+let voiceStartY = 0, voiceTimer = null, voiceCancelled = false;
+function startVoice(e) {
+  e.preventDefault();
+  voiceOverlay.classList.add('show');
+  voiceCancelled = false;
+  voiceStartY = (e.touches ? e.touches[0].clientY : e.clientY);
+  document.getElementById('voiceBtn').classList.add('recording');
+  document.getElementById('voiceText').textContent = '正在听您说话...';
+}
+function stopVoice(e) {
+  if (!voiceOverlay.classList.contains('show')) return;
+  voiceOverlay.classList.remove('show');
+  document.getElementById('voiceBtn').classList.remove('recording');
+  if (voiceCancelled) { showToast('已取消'); return; }
+  const samples = ['物业费如何缴纳？', '我家水管漏水了，怎么报修？', '小区快递柜在哪里？'];
+  const v = samples[Math.floor(Math.random() * samples.length)];
+  userMsg(v);
+  handleAsk(v);
+}
+function cancelVoice(e) {
+  if (!voiceOverlay.classList.contains('show')) return;
+  voiceOverlay.classList.remove('show');
+  document.getElementById('voiceBtn').classList.remove('recording');
+}
+
+/* ---------------- Core: handle question ---------------- */
+function matchKB(q) {
+  if (/预缴|预存|提前缴|预交/.test(q)) return KB['预缴'];
+  if (/物业费|缴费|缴纳|账单|物业缴费/.test(q)) return KB['物业费'];
+  if (/报修|维修|漏水|坏了|故障|电梯|损坏|换灯|管道/.test(q)) return KB['报修'];
+  if (/访客|邀请|来访|朋友过来|客人/.test(q)) return KB['访客'];
+  if (/装修|改造|施工|装潢/.test(q)) return KB['装修'];
+  if (/放行条|搬出|搬走|搬家|大件物品/.test(q)) return KB['放行条'];
+  if (/车位|停车|车牌|车库/.test(q)) return KB['车位'];
+  return null;
+}
+
+function handleAsk(q) {
+  resetIdle();
+  const thinkNode = appendNode(`
+    <div class="msg bot" style="max-width:80%;">
+      <div class="thinking">
+        <div class="thinking-row">
+          <div class="thinking-spark"></div>
+          <strong>思考中</strong>
+          <span class="thinking-dots"><i></i><i></i><i></i></span>
+        </div>
+        <div style="opacity:0.85;">正在理解您的需求...</div>
+        <div class="stop-btn" onclick="this.closest('.msg-row').remove()">⏸ 暂停任务</div>
+      </div>
+    </div>`);
+
+  setTimeout(() => {
+    if (!thinkNode.parentNode) return;
+    thinkNode.remove();
+    const kb = matchKB(q);
+    if (kb) renderAnswer(kb, q);
+    else fallbackAnswer(q);
+  }, 1400 + Math.random() * 600);
+}
+
+function renderAnswer(kb, q) {
+  let html = `<div class="answer">
+    <div class="answer-title">${kb.title}</div>`;
+  if (kb.intro) html += `<div>${kb.intro}</div>`;
+  if (kb.steps && kb.steps.length) {
+    html += '<ol>';
+    kb.steps.forEach(s => html += `<li>${s}</li>`);
+    html += '</ol>';
+  }
+  if (kb.tips) html += `<div style="opacity:0.85;margin-top:6px;white-space:pre-line;">${kb.tips}</div>`;
+  if (kb.actions) {
+    html += '<div class="answer-actions">';
+    kb.actions.forEach(a => html += `<div class="answer-btn ${a.primary?'ab-primary':'ab-secondary'}" onclick="doAction('${a.action}')">${a.label}</div>`);
+    html += '</div>';
+  }
+  html += `<div class="feedback">
+      <span>是否解决您的问题？</span>
+      <span class="fb-btn" onclick="feedback(this,'已解决')">👍 已解决</span>
+      <span class="fb-btn" onclick="feedback(this,'未解决')">👎 未解决</span>
+    </div></div>`;
+  botCard(html);
+}
+
+function feedback(el, label) {
+  showToast('感谢您的反馈～');
+  el.parentNode.innerHTML = `<span style="color:#7ad48a;">已记录：${label}，感谢反馈</span>`;
+  if (label === '未解决') {
+    setTimeout(() => {
+      botMsg(`没能帮到您很抱歉 😔<br>我可以帮您：<div class="quick-list" style="margin-top:8px;">
+        <div class="quick-item" onclick="doAction('createTicket')">提交人工工单</div>
+        <div class="quick-item" onclick="doAction('callService')">转接人工客服</div>
+      </div>`);
+    }, 600);
+  }
+}
+
+function fallbackAnswer(q) {
+  botCard(`<div class="answer">
+    <div class="answer-title">我没完全理解 🤔</div>
+    <div>关于"<b>${escapeHtml(q)}</b>"，我建议您查看以下方向：</div>
+    <div class="quick-list" style="margin-top:10px;">
+      <div class="quick-item" onclick="quickAsk('物业费如何缴纳？')">物业费相关</div>
+      <div class="quick-item" onclick="quickAsk('如何报修？')">报修服务</div>
+      <div class="quick-item" onclick="doAction('callService')">转接人工客服</div>
+    </div>
+  </div>`);
+}
+
+function escapeHtml(s) { return s.replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ---------------- Actions ---------------- */
+const actions = {
+  /* ========== 物业缴费 ========== */
+  goPay() {
+    botCard(`<div class="answer">
+      <div class="answer-title">💳 选择支付方式</div>
+      <div class="quick-list" style="margin-top:8px;">
+        <div class="quick-item" onclick="confirmPay('微信支付')">微信支付（推荐）</div>
+        <div class="quick-item" onclick="confirmPay('支付宝')">支付宝</div>
+        <div class="quick-item" onclick="confirmPay('银联卡')">银联卡支付</div>
+        <div class="quick-item" onclick="confirmPay('积分抵扣')">物业费积分抵扣（剩余 320 分）</div>
+      </div>
+    </div>`);
+  },
+  viewBill() {
+    botCard(`<div class="answer">
+      <div class="answer-title">📋 您的账单（11月）</div>
+      <div class="ticket-result-row"><span>物业管理费</span><span>¥ 380.00</span></div>
+      <div class="ticket-result-row"><span>公共能耗费</span><span>¥ 56.30</span></div>
+      <div class="ticket-result-row"><span>停车位</span><span>¥ 200.00</span></div>
+      <div style="border-top:1px solid rgba(255,255,255,0.1);margin:8px 0;"></div>
+      <div class="ticket-result-row" style="font-weight:700;"><span>合计</span><span style="color:#f5d68a;">¥ 636.30</span></div>
+      <div class="answer-actions">
+        <div class="answer-btn ab-primary" onclick="doAction('goPay')">立即支付</div>
+      </div>
+    </div>`);
+  },
+  payHistory() {
+    botCard(`<div class="answer">
+      <div class="answer-title">📜 缴费记录</div>
+      <div style="margin-top:6px;font-size:12px;">
+        <div class="ticket-result-row"><span>2026-04 物业费</span><span style="color:#7ad48a;">¥ 580 已支付</span></div>
+        <div class="ticket-result-row"><span>2026-03 物业费</span><span style="color:#7ad48a;">¥ 580 已支付</span></div>
+        <div class="ticket-result-row"><span>2026-02 物业费</span><span style="color:#7ad48a;">¥ 580 已支付</span></div>
+      </div>
+    </div>`);
+  },
+
+  /* ========== 预缴管理费 ========== */
+  prepayForm() { renderPrepayForm(); },
+  viewBalance() {
+    botCard(`<div class="answer">
+      <div class="answer-title">💰 物业费余额</div>
+      <div style="margin-top:6px;font-size:12px;">
+        <div class="ticket-result-row"><span>当前余额</span><span style="color:#f5d68a;font-weight:700;">¥ 1,160.00</span></div>
+        <div class="ticket-result-row"><span>已抵扣月份</span><span>2026-05、2026-06</span></div>
+        <div class="ticket-result-row"><span>预计可用至</span><span>2026-06-30</span></div>
+        <div class="ticket-result-row"><span>累计积分</span><span>320 分</span></div>
+      </div>
+      <div class="answer-actions">
+        <div class="answer-btn ab-primary" onclick="doAction('prepayForm')">继续预缴</div>
+      </div>
+    </div>`);
+  },
+
+  /* ========== 访客邀请 ========== */
+  inviteForm() { renderInviteForm(); },
+  visitorList() {
+    botCard(`<div class="answer">
+      <div class="answer-title">👥 近期访客</div>
+      <div class="ticket-result-row"><span>张先生（138****6677）</span><span style="color:#7ad48a;">已通行</span></div>
+      <div class="ticket-result-row"><span>李女士（159****1234）</span><span style="color:#f5d68a;">待到访</span></div>
+      <div class="ticket-result-row"><span>王师傅（132****5678）</span><span style="opacity:0.6;">已过期</span></div>
+    </div>`);
+  },
+  /* ========== 装修申请 ========== */
+  renovationForm() { renderRenovationForm(); },
+  renovationGuide() {
+    botCard(`<div class="answer">
+      <div class="answer-title">🏗️ 装修须知</div>
+      <ol>
+        <li>装修施工时间：周一至周五 8:30 - 12:00、14:00 - 18:00</li>
+        <li>禁止在午休及节假日施工</li>
+        <li>不得改动承重墙、阳台外立面</li>
+        <li>需缴纳装修押金 2000 元（无违规可全额退还）</li>
+        <li>建材运输请走货梯，超大件需提前申请放行</li>
+      </ol>
+      <div class="answer-actions">
+        <div class="answer-btn ab-primary" onclick="doAction('renovationForm')">立即提交申请</div>
+      </div>
+    </div>`);
+  },
+
+  /* ========== 放行条申请 ========== */
+  releaseForm() { renderReleaseForm(); },
+  releaseList() {
+    botCard(`<div class="answer">
+      <div class="answer-title">📋 我的放行条</div>
+      <div class="info-card" onclick="showReleasePass('FX2026050301')">
+        <div class="info-card-title">沙发 / 2 件 <span class="info-card-tag green">已通过</span></div>
+        <div class="info-card-meta">编号 FX2026050301 · 有效期至 2026-05-08</div>
+      </div>
+      <div class="info-card" onclick="showReleasePass('FX2026042210')">
+        <div class="info-card-title">电视柜 / 1 件 <span class="info-card-tag">已使用</span></div>
+        <div class="info-card-meta">编号 FX2026042210 · 已于 2026-04-23 出门</div>
+      </div>
+    </div>`);
+  },
+
+  /* ========== 车位管理 ========== */
+  parkingList() {
+    botCard(`<div class="answer">
+      <div class="answer-title">🚗 我的车位</div>
+      <div class="info-card">
+        <div class="info-card-title">B2-128 <span class="info-card-tag green">使用中</span></div>
+        <div class="info-card-meta">绑定车牌：粤B·12345 · 月租到期：2026-12-31</div>
+        <div class="answer-actions">
+          <div class="answer-btn ab-primary" onclick="doAction('parkingRenew')">续费</div>
+          <div class="answer-btn ab-secondary" onclick="doAction('bindPlateForm')">改绑车牌</div>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">B2-129 <span class="info-card-tag gold">空闲</span></div>
+        <div class="info-card-meta">未绑定车牌 · 可办理月租 ¥ 600/月</div>
+        <div class="answer-actions">
+          <div class="answer-btn ab-primary" onclick="doAction('bindPlateForm')">绑定车牌</div>
+        </div>
+      </div>
+    </div>`);
+  },
+  bindPlateForm() { renderBindPlateForm(); },
+  parkingRenew() { renderParkingRenewForm(); },
+
+  viewMap() { showToast('打开小区平面图...'); },
+  callGate() { showToast('正在拨打门岗：4001-xxx-888'); },
+  callService() {
+    botMsg('正在为您转接人工客服...👩‍💼<br><span style="opacity:0.7;font-size:11px;">客服小邦预计 30 秒内接入</span>');
+    setTimeout(() => botMsg('您好，我是客服小邦，请问有什么可以帮您？'), 2200);
+  },
+  createTicket() { renderTicketForm(); },
+  viewHistory() {
+    botCard(`<div class="answer">
+      <div class="answer-title">🛠️ 历史工单</div>
+      <div class="ticket-result-row"><span>水管漏水 #BX2026050601</span><span style="color:#7ad48a;">已完成</span></div>
+      <div class="ticket-result-row"><span>电梯异响 #BX2026042108</span><span style="color:#7ad48a;">已完成</span></div>
+      <div class="ticket-result-row"><span>门禁损坏 #BX2026041502</span><span style="color:#f5d68a;">维修中</span></div>
+    </div>`);
+  }
+};
+function doAction(name) { if (actions[name]) actions[name](); else showToast('功能开发中'); }
+
+/* ---------------- In-chat ticket form ---------------- */
+let ticketState = { type: '', desc: '', time: '尽快上门', photos: 0 };
+function renderTicketForm() {
+  ticketState = { type: '', desc: '', time: '尽快上门', photos: 0 };
+  const html = `<div class="ticket" id="ticketForm">
+    <div class="ticket-title">提交报修工单</div>
+
+    <div class="ticket-row">
+      <div class="ticket-label">报修类型</div>
+      <div class="ticket-tags" id="tkTypeTags">
+        ${['水电维修','门窗损坏','电梯故障','公区设施','其他'].map(t=>`<div class="ticket-tag" onclick="selectType(this,'${t}')">${t}</div>`).join('')}
+      </div>
+    </div>
+
+    <div class="ticket-row">
+      <div class="ticket-label">问题描述</div>
+      <textarea class="ticket-textarea" id="tkDesc" placeholder="请描述具体情况，便于师傅准备工具..."></textarea>
+    </div>
+
+    <div class="ticket-row">
+      <div class="ticket-label">上传照片（选填）</div>
+      <div class="ticket-tags">
+        <div class="ticket-upload" onclick="addPhoto(this)">+<span>照片</span></div>
+        <span id="photoList" style="opacity:0.7;align-self:center;font-size:11px;"></span>
+      </div>
+    </div>
+
+    <div class="ticket-row">
+      <div class="ticket-label">期望上门时间</div>
+      <div class="ticket-tags" id="tkTimeTags">
+        ${['尽快上门','今天下午','今天晚上','明天上午','明天下午'].map((t,i)=>`<div class="ticket-tag ${i===0?'active':''}" onclick="selectTime(this,'${t}')">${t}</div>`).join('')}
+      </div>
+    </div>
+
+    <div class="ticket-row">
+      <div class="ticket-label">联系电话</div>
+      <input class="ticket-input" id="tkPhone" value="138****6677" readonly>
+    </div>
+
+    <button class="ticket-submit" onclick="submitTicket()">提交工单</button>
+  </div>`;
+  botCard(html);
+}
+function selectType(el,t) {
+  el.parentNode.querySelectorAll('.ticket-tag').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  ticketState.type = t;
+}
+function selectTime(el,t) {
+  el.parentNode.querySelectorAll('.ticket-tag').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  ticketState.time = t;
+}
+function addPhoto(el) {
+  ticketState.photos = Math.min(ticketState.photos + 1, 3);
+  document.getElementById('photoList').textContent = `已添加 ${ticketState.photos} 张照片`;
+  if (ticketState.photos >= 3) showToast('最多上传 3 张');
+}
+function submitTicket() {
+  if (!ticketState.type) { showToast('请选择报修类型'); return; }
+  const desc = document.getElementById('tkDesc').value.trim();
+  if (!desc) { showToast('请填写问题描述'); return; }
+  ticketState.desc = desc;
+  document.getElementById('ticketForm').style.opacity = '0.5';
+  document.getElementById('ticketForm').style.pointerEvents = 'none';
+  const pending = botMsg('正在为您派单...📡');
+  setTimeout(() => {
+    pending.querySelector('.bubble').innerHTML = '工单提交成功 ✅';
+    const id = 'BX' + new Date().toISOString().slice(0,10).replace(/-/g,'') + Math.floor(Math.random()*9000+1000);
+    botCard(`<div class="ticket-result">
+      <div class="ticket-result-icon">✓</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px;">工单已派单</div>
+      <div style="opacity:0.8;margin-bottom:10px;">王师傅已接单，预计 30 分钟内联系您</div>
+      <div class="ticket-result-row"><span>工单号</span><span class="ticket-result-id">${id}</span></div>
+      <div class="ticket-result-row"><span>类型</span><span>${ticketState.type}</span></div>
+      <div class="ticket-result-row"><span>期望时间</span><span>${ticketState.time}</span></div>
+      <div class="ticket-result-row"><span>预计处理</span><span style="color:#7ad48a;">2 小时内</span></div>
+      <div class="answer-actions">
+        <div class="answer-btn ab-primary" onclick="trackTicket('${id}')">追踪进度</div>
+        <div class="answer-btn ab-secondary" onclick="doAction('callService')">联系客服</div>
+      </div>
+    </div>`);
+    setTimeout(() => {
+      botMsg('还有什么可以帮您？您也可以直接问我其他问题 ✨');
+    }, 800);
+  }, 1400);
+}
+function trackTicket(id) {
+  botCard(`<div class="answer">
+    <div class="answer-title">📍 工单 ${id} 进度</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+      <div style="display:flex;gap:8px;align-items:flex-start;"><span style="color:#7ad48a;">●</span><div><b>已提交</b><div style="opacity:0.7;font-size:11px;">${new Date().toLocaleTimeString('zh-CN')}</div></div></div>
+      <div style="display:flex;gap:8px;align-items:flex-start;"><span style="color:#7ad48a;">●</span><div><b>已派单</b><div style="opacity:0.7;font-size:11px;">王师傅 · 工号 W023</div></div></div>
+      <div style="display:flex;gap:8px;align-items:flex-start;"><span style="color:#f5d68a;">○</span><div><b>师傅出发中</b><div style="opacity:0.7;font-size:11px;">预计 ${ticketState.time}</div></div></div>
+      <div style="display:flex;gap:8px;align-items:flex-start;"><span style="opacity:0.4;">○</span><div style="opacity:0.5;"><b>处理中</b></div></div>
+      <div style="display:flex;gap:8px;align-items:flex-start;"><span style="opacity:0.4;">○</span><div style="opacity:0.5;"><b>已完成</b></div></div>
+    </div>
+  </div>`);
+}
+
+/* ============ 物业缴费 confirm ============ */
+function confirmPay(method) {
+  const pending = botMsg(`正在通过 <b>${method}</b> 完成支付...`);
+  setTimeout(()=>{
+    pending.querySelector('.bubble').innerHTML = '✅ 支付成功';
+    botCard(`<div class="ticket-result">
+      <div class="ticket-result-icon">✓</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px;">缴费成功</div>
+      <div style="opacity:0.8;margin-bottom:10px;">已发送电子发票到您的预留邮箱</div>
+      <div class="ticket-result-row"><span>支付方式</span><span>${method}</span></div>
+      <div class="ticket-result-row"><span>支付金额</span><span style="color:#f5d68a;font-weight:700;">¥ 636.30</span></div>
+      <div class="ticket-result-row"><span>支付时间</span><span>${new Date().toLocaleString('zh-CN')}</span></div>
+      <div class="ticket-result-row"><span>订单号</span><span class="ticket-result-id">PAY${Date.now().toString().slice(-10)}</span></div>
+    </div>`);
+  }, 1500);
+}
+
+/* ============ 预缴管理费 ============ */
+let prepayState = { months: 12, method: '微信支付' };
+function renderPrepayForm() {
+  prepayState = { months: 12, method: '微信支付' };
+  botCard(`<div class="ticket" id="prepayForm">
+    <div class="ticket-title" style="background:none;padding:0;">📅 预缴管理费</div>
+    <div class="ticket-row">
+      <div class="ticket-label">选择房产</div>
+      <div class="ticket-tags"><div class="ticket-tag active">时代玫瑰园二期 8-2-1801</div></div>
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">预缴月数（月费 ¥ 580）</div>
+      <div class="ticket-tags" id="prepayMonths">
+        ${[3,6,12,24].map(m=>`<div class="ticket-tag ${m===12?'active':''}" onclick="selPrepayMonth(this,${m})">${m} 个月${m>=12?' · 享 9.5 折':''}</div>`).join('')}
+      </div>
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">支付方式</div>
+      <div class="ticket-tags" id="prepayMethod">
+        ${['微信支付','支付宝','银联卡'].map((t,i)=>`<div class="ticket-tag ${i===0?'active':''}" onclick="selPrepayMethod(this,'${t}')">${t}</div>`).join('')}
+      </div>
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">应付金额</div>
+      <div id="prepayTotal" style="color:#f5d68a;font-size:18px;font-weight:700;">¥ 6,612.00</div>
+    </div>
+    <button class="ticket-submit" onclick="submitPrepay()">立即预缴</button>
+  </div>`);
+}
+function selPrepayMonth(el,m){ el.parentNode.querySelectorAll('.ticket-tag').forEach(x=>x.classList.remove('active')); el.classList.add('active'); prepayState.months=m; updatePrepayTotal(); }
+function selPrepayMethod(el,m){ el.parentNode.querySelectorAll('.ticket-tag').forEach(x=>x.classList.remove('active')); el.classList.add('active'); prepayState.method=m; }
+function updatePrepayTotal(){
+  const base = prepayState.months * 580;
+  const total = prepayState.months >= 12 ? base * 0.95 : base;
+  document.getElementById('prepayTotal').textContent = '¥ ' + total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + (prepayState.months>=12?' （9.5折）':'');
+}
+function submitPrepay() {
+  const f = document.getElementById('prepayForm');
+  f.style.opacity='0.5'; f.style.pointerEvents='none';
+  const pending = botMsg(`正在通过 <b>${prepayState.method}</b> 完成预缴...`);
+  setTimeout(()=>{
+    pending.querySelector('.bubble').innerHTML = '✅ 预缴成功';
+    const base = prepayState.months * 580;
+    const total = prepayState.months >= 12 ? base * 0.95 : base;
+    botCard(`<div class="ticket-result">
+      <div class="ticket-result-icon">✓</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px;">预缴成功</div>
+      <div style="opacity:0.8;margin-bottom:10px;">已存入您的物业账户余额</div>
+      <div class="ticket-result-row"><span>预缴月数</span><span>${prepayState.months} 个月</span></div>
+      <div class="ticket-result-row"><span>支付金额</span><span style="color:#f5d68a;font-weight:700;">¥ ${total.toFixed(2)}</span></div>
+      <div class="ticket-result-row"><span>抵扣周期</span><span>2026-07 至 2027-${(6+prepayState.months).toString().padStart(2,'0').slice(-2)}</span></div>
+      <div class="ticket-result-row"><span>订单号</span><span class="ticket-result-id">PRE${Date.now().toString().slice(-10)}</span></div>
+    </div>`);
+  }, 1400);
+}
+
+/* ============ 访客邀请 ============ */
+let inviteState = { name:'', phone:'', date:'', valid:'24小时' };
+function renderInviteForm() {
+  inviteState = { name:'', phone:'', date:'今天', valid:'24小时' };
+  botCard(`<div class="ticket" id="inviteForm">
+    <div class="ticket-title" style="background:none;padding:0;">👥 邀请访客</div>
+    <div class="ticket-row">
+      <div class="ticket-label">访客姓名</div>
+      <input class="ticket-input" id="ivName" placeholder="请输入访客姓名">
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">访客手机号</div>
+      <input class="ticket-input" id="ivPhone" placeholder="请输入手机号">
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">来访时间</div>
+      <div class="ticket-tags" id="ivDate">
+        ${['今天','明天','后天'].map((t,i)=>`<div class="ticket-tag ${i===0?'active':''}" onclick="selIvDate(this,'${t}')">${t}</div>`).join('')}
+      </div>
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">通行码有效期</div>
+      <div class="ticket-tags" id="ivValid">
+        ${['4小时','24小时','3天'].map((t,i)=>`<div class="ticket-tag ${i===1?'active':''}" onclick="selIvValid(this,'${t}')">${t}</div>`).join('')}
+      </div>
+    </div>
+    <button class="ticket-submit" onclick="submitInvite()">生成邀请二维码</button>
+  </div>`);
+}
+function selIvDate(el,t){ el.parentNode.querySelectorAll('.ticket-tag').forEach(x=>x.classList.remove('active')); el.classList.add('active'); inviteState.date=t; }
+function selIvValid(el,t){ el.parentNode.querySelectorAll('.ticket-tag').forEach(x=>x.classList.remove('active')); el.classList.add('active'); inviteState.valid=t; }
+function submitInvite(){
+  const name = document.getElementById('ivName').value.trim();
+  const phone = document.getElementById('ivPhone').value.trim();
+  if(!name){ showToast('请填写访客姓名'); return; }
+  if(!/^1\d{10}$/.test(phone)){ showToast('请填写正确的手机号'); return; }
+  inviteState.name = name; inviteState.phone = phone;
+  const f = document.getElementById('inviteForm');
+  f.style.opacity='0.5'; f.style.pointerEvents='none';
+  setTimeout(()=>{
+    const code = 'INV' + Math.random().toString(36).slice(2,8).toUpperCase();
+    botCard(`<div class="ticket-result">
+      <div style="text-align:center;font-size:14px;font-weight:700;">📱 访客通行二维码</div>
+      <div class="qr-mock"></div>
+      <div class="ticket-result-row"><span>访客</span><span>${name} · ${phone.replace(/(\d{3})\d{4}(\d{4})/,'$1****$2')}</span></div>
+      <div class="ticket-result-row"><span>来访时间</span><span>${inviteState.date}</span></div>
+      <div class="ticket-result-row"><span>有效期</span><span>${inviteState.valid}</span></div>
+      <div class="ticket-result-row"><span>通行码</span><span class="ticket-result-id">${code}</span></div>
+      <div class="answer-actions">
+        <div class="answer-btn ab-primary" onclick="showToast('已通过短信发送给访客')">短信发送</div>
+        <div class="answer-btn ab-secondary" onclick="showToast('已复制邀请链接')">复制链接</div>
+      </div>
+    </div>`);
+  }, 800);
+}
+
+/* ============ 装修申请 ============ */
+let renoState = { type:'', start:'', dur:'30天', team:'', phone:'', files:0 };
+function renderRenovationForm(){
+  renoState = { type:'', start:'', dur:'30天', team:'', phone:'', files:0 };
+  botCard(`<div class="ticket" id="renoForm">
+    <div class="ticket-title" style="background:none;padding:0;">🏗️ 装修申请</div>
+    <div class="ticket-row">
+      <div class="ticket-label">装修类型</div>
+      <div class="ticket-tags">
+        ${['全屋翻新','局部改造','软装升级','水电改造'].map(t=>`<div class="ticket-tag" onclick="selReno(this,'type','${t}')">${t}</div>`).join('')}
+      </div>
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">计划开工日期</div>
+      <input class="ticket-input" type="date" id="renoStart" value="2026-05-15">
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">预计工期</div>
+      <div class="ticket-tags">
+        ${['15天','30天','60天','90天'].map((t,i)=>`<div class="ticket-tag ${i===1?'active':''}" onclick="selReno(this,'dur','${t}')">${t}</div>`).join('')}
+      </div>
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">施工单位</div>
+      <input class="ticket-input" id="renoTeam" placeholder="请输入装修公司或工人姓名">
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">现场负责人电话</div>
+      <input class="ticket-input" id="renoPhone" placeholder="请输入手机号">
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">上传图纸/方案</div>
+      <div class="ticket-tags">
+        <div class="ticket-upload" onclick="addRenoFile()">+<span>图纸</span></div>
+        <span id="renoFiles" style="opacity:0.7;align-self:center;font-size:11px;"></span>
+      </div>
+    </div>
+    <button class="ticket-submit" onclick="submitReno()">提交申请</button>
+  </div>`);
+}
+function selReno(el,k,v){ el.parentNode.querySelectorAll('.ticket-tag').forEach(x=>x.classList.remove('active')); el.classList.add('active'); renoState[k]=v; }
+function addRenoFile(){ renoState.files=Math.min(renoState.files+1,5); document.getElementById('renoFiles').textContent=`已上传 ${renoState.files} 份`; }
+function submitReno(){
+  if(!renoState.type){ showToast('请选择装修类型'); return; }
+  const team = document.getElementById('renoTeam').value.trim();
+  const phone = document.getElementById('renoPhone').value.trim();
+  if(!team){ showToast('请填写施工单位'); return; }
+  if(!/^1\d{10}$/.test(phone)){ showToast('请填写正确的手机号'); return; }
+  renoState.team = team; renoState.phone = phone;
+  renoState.start = document.getElementById('renoStart').value;
+  const f = document.getElementById('renoForm');
+  f.style.opacity='0.5'; f.style.pointerEvents='none';
+  const pending = botMsg('正在提交装修申请到物业审核...');
+  setTimeout(()=>{
+    pending.querySelector('.bubble').innerHTML = '✅ 申请已提交';
+    const id = 'ZX' + new Date().toISOString().slice(0,10).replace(/-/g,'') + Math.floor(Math.random()*9000+1000);
+    botCard(`<div class="ticket-result">
+      <div class="ticket-result-icon">✓</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px;">装修申请已提交</div>
+      <div style="opacity:0.8;margin-bottom:10px;">物业将在 1 个工作日内审核，请保持电话畅通</div>
+      <div class="ticket-result-row"><span>申请单号</span><span class="ticket-result-id">${id}</span></div>
+      <div class="ticket-result-row"><span>装修类型</span><span>${renoState.type}</span></div>
+      <div class="ticket-result-row"><span>开工/工期</span><span>${renoState.start} · ${renoState.dur}</span></div>
+      <div class="ticket-result-row"><span>装修押金</span><span style="color:#f5d68a;">¥ 2,000（待缴）</span></div>
+      <div class="ticket-result-row"><span>当前状态</span><span style="color:#f5d68a;">物业审核中</span></div>
+      <div class="answer-actions">
+        <div class="answer-btn ab-primary" onclick="showToast('调起押金支付')">缴纳押金</div>
+        <div class="answer-btn ab-secondary" onclick="doAction('renovationGuide')">查看须知</div>
+      </div>
+    </div>`);
+  }, 1400);
+}
+
+/* ============ 放行条申请 ============ */
+let releaseState = { item:'', count:1, date:'', way:'电梯', files:0 };
+function renderReleaseForm(){
+  releaseState = { item:'', count:1, date:'', way:'电梯', files:0 };
+  botCard(`<div class="ticket" id="releaseForm">
+    <div class="ticket-title" style="background:none;padding:0;">📋 放行条申请</div>
+    <div class="ticket-row">
+      <div class="ticket-label">物品类型</div>
+      <div class="ticket-tags">
+        ${['家具','家电','建材','其他'].map(t=>`<div class="ticket-tag" onclick="selRel(this,'item','${t}')">${t}</div>`).join('')}
+      </div>
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">物品描述</div>
+      <textarea class="ticket-textarea" id="rlDesc" placeholder="请说明物品名称、规格..."></textarea>
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">物品照片（必传）</div>
+      <div class="ticket-tags">
+        <div class="ticket-upload" onclick="addRelFile()">+<span>照片</span></div>
+        <span id="relFiles" style="opacity:0.7;align-self:center;font-size:11px;"></span>
+      </div>
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">数量</div>
+      <input class="ticket-input" type="number" id="rlCount" value="1" min="1">
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">搬出日期</div>
+      <input class="ticket-input" type="date" id="rlDate" value="2026-05-08">
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">搬运方式</div>
+      <div class="ticket-tags">
+        ${['电梯','货梯','人工搬运'].map((t,i)=>`<div class="ticket-tag ${i===0?'active':''}" onclick="selRel(this,'way','${t}')">${t}</div>`).join('')}
+      </div>
+    </div>
+    <button class="ticket-submit" onclick="submitRelease()">提交申请</button>
+  </div>`);
+}
+function selRel(el,k,v){ el.parentNode.querySelectorAll('.ticket-tag').forEach(x=>x.classList.remove('active')); el.classList.add('active'); releaseState[k]=v; }
+function addRelFile(){ releaseState.files=Math.min(releaseState.files+1,3); document.getElementById('relFiles').textContent=`已上传 ${releaseState.files} 张`; }
+function submitRelease(){
+  if(!releaseState.item){ showToast('请选择物品类型'); return; }
+  const desc = document.getElementById('rlDesc').value.trim();
+  if(!desc){ showToast('请填写物品描述'); return; }
+  if(releaseState.files===0){ showToast('请至少上传 1 张照片'); return; }
+  releaseState.count = document.getElementById('rlCount').value;
+  releaseState.date = document.getElementById('rlDate').value;
+  const f = document.getElementById('releaseForm');
+  f.style.opacity='0.5'; f.style.pointerEvents='none';
+  const pending = botMsg('提交至物业审核...');
+  setTimeout(()=>{
+    pending.querySelector('.bubble').innerHTML = '✅ 放行码已生成';
+    const id = 'FX' + new Date().toISOString().slice(0,10).replace(/-/g,'') + Math.floor(Math.random()*9000+1000);
+    botCard(`<div class="ticket-result">
+      <div style="text-align:center;font-size:14px;font-weight:700;">📲 电子放行码</div>
+      <div class="qr-mock"></div>
+      <div class="ticket-result-row"><span>编号</span><span class="ticket-result-id">${id}</span></div>
+      <div class="ticket-result-row"><span>物品</span><span>${releaseState.item} · ${desc}</span></div>
+      <div class="ticket-result-row"><span>数量</span><span>${releaseState.count} 件</span></div>
+      <div class="ticket-result-row"><span>搬运方式</span><span>${releaseState.way}</span></div>
+      <div class="ticket-result-row"><span>有效日期</span><span style="color:#f5d68a;">${releaseState.date}</span></div>
+      <div class="ticket-result-row"><span>状态</span><span style="color:#7ad48a;">已通过 · 出门时出示给保安</span></div>
+    </div>`);
+  }, 1400);
+}
+function showReleasePass(id){
+  botCard(`<div class="ticket-result">
+    <div style="text-align:center;font-size:14px;font-weight:700;">📲 放行码 ${id}</div>
+    <div class="qr-mock"></div>
+    <div class="ticket-result-row"><span>状态</span><span style="color:#7ad48a;">已通过</span></div>
+    <div class="ticket-result-row"><span>有效期至</span><span>2026-05-08</span></div>
+  </div>`);
+}
+
+/* ============ 车位绑定 / 续费 ============ */
+function renderBindPlateForm(){
+  botCard(`<div class="ticket" id="plateForm">
+    <div class="ticket-title" style="background:none;padding:0;">🚗 绑定车牌</div>
+    <div class="ticket-row">
+      <div class="ticket-label">选择车位</div>
+      <div class="ticket-tags">
+        <div class="ticket-tag active" onclick="event.stopPropagation()">B2-128</div>
+        <div class="ticket-tag" onclick="event.stopPropagation()">B2-129</div>
+      </div>
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">车牌号</div>
+      <input class="ticket-input" id="plateNo" placeholder="例：粤B·12345" style="text-transform:uppercase;">
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">车辆类型</div>
+      <div class="ticket-tags">
+        <div class="ticket-tag active" onclick="this.parentNode.querySelectorAll('.ticket-tag').forEach(x=>x.classList.remove('active'));this.classList.add('active');">小型车</div>
+        <div class="ticket-tag" onclick="this.parentNode.querySelectorAll('.ticket-tag').forEach(x=>x.classList.remove('active'));this.classList.add('active');">新能源</div>
+      </div>
+    </div>
+    <button class="ticket-submit" onclick="submitPlate()">绑定车牌</button>
+  </div>`);
+}
+function submitPlate(){
+  const no = document.getElementById('plateNo').value.trim();
+  if(!no){ showToast('请填写车牌号'); return; }
+  const f = document.getElementById('plateForm');
+  f.style.opacity='0.5'; f.style.pointerEvents='none';
+  setTimeout(()=>{
+    botCard(`<div class="ticket-result">
+      <div class="ticket-result-icon">✓</div>
+      <div style="font-size:14px;font-weight:700;">车牌绑定成功</div>
+      <div style="opacity:0.8;margin:6px 0 10px;">${no} 已绑定到车位 B2-128</div>
+      <div class="ticket-result-row"><span>状态</span><span style="color:#7ad48a;">已生效</span></div>
+      <div class="ticket-result-row"><span>说明</span><span>抬杆后自动识别放行</span></div>
+    </div>`);
+  }, 800);
+}
+function renderParkingRenewForm(){
+  botCard(`<div class="ticket" id="renewForm">
+    <div class="ticket-title" style="background:none;padding:0;">🚗 车位续费 · B2-128</div>
+    <div class="ticket-row">
+      <div class="ticket-label">续费时长（¥ 600/月）</div>
+      <div class="ticket-tags" id="renewMonths">
+        ${[3,6,12].map((m,i)=>`<div class="ticket-tag ${i===2?'active':''}" onclick="this.parentNode.querySelectorAll('.ticket-tag').forEach(x=>x.classList.remove('active'));this.classList.add('active');document.getElementById('renewTotal').textContent='¥ '+(${m}*600).toLocaleString();window._renewM=${m};">${m} 个月${m===12?' · 9 折':''}</div>`).join('')}
+      </div>
+    </div>
+    <div class="ticket-row">
+      <div class="ticket-label">应付金额</div>
+      <div id="renewTotal" style="color:#f5d68a;font-size:18px;font-weight:700;">¥ 7,200</div>
+    </div>
+    <button class="ticket-submit" onclick="submitRenew()">立即续费</button>
+  </div>`);
+  window._renewM = 12;
+}
+function submitRenew(){
+  const f = document.getElementById('renewForm');
+  f.style.opacity='0.5'; f.style.pointerEvents='none';
+  const m = window._renewM || 12;
+  setTimeout(()=>{
+    botCard(`<div class="ticket-result">
+      <div class="ticket-result-icon">✓</div>
+      <div style="font-size:14px;font-weight:700;">续费成功</div>
+      <div style="opacity:0.8;margin:6px 0 10px;">车位 B2-128 已续费 ${m} 个月</div>
+      <div class="ticket-result-row"><span>新到期日</span><span style="color:#f5d68a;">2027-12-31</span></div>
+    </div>`);
+  }, 1000);
+}
+
+/* Listen for input changes to reset idle */
+chatBody.addEventListener('scroll', resetIdle);
+chatBody.addEventListener('click', resetIdle);
+
+/* Auto-tip pulse hint after 5s */
+setTimeout(() => { if (!chatStarted) hideTip(); }, 8000);
+</script>
+
+</body>
+</html>
