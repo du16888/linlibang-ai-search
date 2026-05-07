@@ -90,8 +90,87 @@
   .top-more::before, .top-more::after { content:"·"; font-size: 22px; line-height: 0;}
 
   /* Community */
-  .community { display: flex; align-items: center; gap: 6px; padding: 0 18px 10px; font-size: 13px; color: #5a5a5a;}
+  .community-row { display: flex; align-items: center; justify-content: space-between; padding: 0 14px 10px;}
+  .community { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #5a5a5a;}
   .community::before { content: "📍"; font-size: 12px; }
+
+  /* AI entry chip — 替代原悬浮球，放在首页右上角与项目定位对齐 */
+  .ai-entry {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px 0 8px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #5B8CFF 0%, #7A5CFF 100%);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(91,140,255,0.35);
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+  .ai-entry:active { transform: scale(0.95); }
+  .ai-entry::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
+    transform: translateX(-120%);
+    animation: aiShine 2.6s ease-in-out infinite;
+  }
+  @keyframes aiShine {
+    0%, 60% { transform: translateX(-120%); }
+    100% { transform: translateX(120%); }
+  }
+  .ai-entry-orb {
+    position: relative;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1;
+  }
+  .ai-entry-orb::before,
+  .ai-entry-orb::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    background: #fff;
+  }
+  .ai-entry-orb::before { width: 4px; height: 4px; top: 7px; left: 5px; animation: aiBlink 2.4s ease-in-out infinite; }
+  .ai-entry-orb::after  { width: 4px; height: 4px; top: 7px; right: 5px; animation: aiBlink 2.4s ease-in-out infinite 0.2s; }
+  .ai-entry-orb i {
+    width: 8px; height: 2px;
+    background: #fff;
+    border-radius: 1px;
+    margin-top: 12px;
+    animation: aiSmile 2.4s ease-in-out infinite;
+  }
+  @keyframes aiBlink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+  @keyframes aiSmile { 0%, 100% { width: 8px; } 50% { width: 10px; } }
+  .ai-entry-label { z-index: 1; letter-spacing: 0.3px;}
+  .ai-entry-spark {
+    position: absolute;
+    right: -2px; top: -2px;
+    width: 8px; height: 8px;
+    z-index: 2;
+  }
+  .ai-entry-spark::before {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background: #ffd76b;
+    box-shadow: 0 0 6px #ffd76b;
+    animation: aiSpark 1.8s ease-in-out infinite;
+  }
+  @keyframes aiSpark {
+    0%, 100% { transform: scale(0.6); opacity: 0.6; }
+    50% { transform: scale(1); opacity: 1; }
+  }
 
   /* Banner */
   .banner {
@@ -773,7 +852,7 @@
 
 <div class="page-title">
   <h1>邻里邦 · AI 智能客服全流程</h1>
-  <p>点击右下角悬浮球唤起 · 全流程在对话窗内完成 · 无需跳转</p>
+  <p>点击右上角 AI 助手图标唤起 · 全流程在对话窗内完成 · 无需跳转</p>
 </div>
 
 <div class="phone">
@@ -801,7 +880,14 @@
       <div class="top-more"></div>
     </div>
 
-    <div class="community">时代玫瑰园二期</div>
+    <div class="community-row">
+      <div class="community">时代玫瑰园二期</div>
+      <div class="ai-entry" id="aiEntry" onclick="openChat()">
+        <div class="ai-entry-orb"><i></i></div>
+        <span class="ai-entry-label">AI 助手</span>
+        <span class="ai-entry-spark"></span>
+      </div>
+    </div>
 
     <div class="banner">
       <span class="banner-tag">业主畅行礼</span>
@@ -856,17 +942,6 @@
       <div class="tutorial-card">
         <div class="play-btn"></div>
       </div>
-    </div>
-
-    <!-- AI Tip bubble -->
-    <div class="ai-tip" id="aiTip">
-      Hi~ 有什么可以帮您？
-      <div class="ai-tip-close" onclick="event.stopPropagation();hideTip();">×</div>
-    </div>
-
-    <!-- AI Floating Ball -->
-    <div class="ai-ball" id="aiBall" onclick="openChat()">
-      <div class="ai-ball-icon"><i></i></div>
     </div>
 
     <!-- Chat sheet -->
@@ -928,8 +1003,7 @@
 const chatBody = document.getElementById('chatBody');
 const chatSheet = document.getElementById('chatSheet');
 const chatMask = document.getElementById('chatMask');
-const aiBall = document.getElementById('aiBall');
-const aiTip = document.getElementById('aiTip');
+const aiEntry = document.getElementById('aiEntry');
 const inputBar = document.getElementById('inputBar');
 const textInput = document.getElementById('textInput');
 const modeBtn = document.getElementById('modeBtn');
@@ -984,7 +1058,7 @@ function showToast(text) {
   setTimeout(() => toast.classList.remove('show'), 1600);
 }
 
-function hideTip() { aiTip.classList.add('hidden'); }
+function hideTip() { /* AI 入口已替换为顶栏图标，无气泡 */ }
 
 function scrollToBottom() {
   setTimeout(() => { chatBody.scrollTop = chatBody.scrollHeight; }, 30);
@@ -1012,8 +1086,6 @@ function botCard(html) {
 
 /* ---------------- Open / close ---------------- */
 function openChat() {
-  hideTip();
-  aiBall.classList.add('hidden');
   chatMask.classList.add('show');
   chatSheet.classList.add('show');
   if (!chatStarted) {
@@ -1026,7 +1098,6 @@ function openChat() {
 function closeChat() {
   chatMask.classList.remove('show');
   chatSheet.classList.remove('show');
-  setTimeout(() => { aiBall.classList.remove('hidden'); }, 250);
   clearTimeout(idleTimer);
 }
 
@@ -1790,8 +1861,6 @@ function submitRenew(){
 chatBody.addEventListener('scroll', resetIdle);
 chatBody.addEventListener('click', resetIdle);
 
-/* Auto-tip pulse hint after 5s */
-setTimeout(() => { if (!chatStarted) hideTip(); }, 8000);
 </script>
 
 </body>
