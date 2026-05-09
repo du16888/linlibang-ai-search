@@ -812,6 +812,132 @@
     background: #fff;
   }
 
+  /* ── Mode toggle pill in header ── */
+  .mode-toggle {
+    position: absolute;
+    right: 44px; top: 14px;
+    display: flex;
+    background: #f3f4f7;
+    border-radius: 12px;
+    padding: 2px;
+    gap: 2px;
+  }
+  .mtab {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    color: #888;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .mtab.active { background:#fff; color:#5B8CFF; font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+
+  /* ════════════ MODE 1 — 卡片轮播 ════════════ */
+  .chat-sheet.mode-carousel { max-height: 90%; }
+  .carousel-tabs {
+    display: flex;
+    overflow-x: auto;
+    padding: 0 14px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    gap: 0;
+    flex-shrink: 0;
+  }
+  .carousel-tabs::-webkit-scrollbar { display:none; }
+  .ctab {
+    flex-shrink: 0;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #888;
+    position: relative;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .ctab.active { color:#1a1d26; font-weight:700; }
+  .ctab.active::after {
+    content:""; position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+    width:20px; height:2.5px; background:#5B8CFF; border-radius:2px;
+  }
+  .carousel-body { flex:1; overflow:hidden; display:flex; flex-direction:column; padding: 12px 0 4px;}
+  .carousel-wrap {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    display: flex;
+    gap: 12px;
+    padding: 0 14px 8px;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+  }
+  .carousel-wrap::-webkit-scrollbar { display:none; }
+  .carousel-card {
+    flex-shrink: 0;
+    width: calc(100% - 28px);
+    scroll-snap-align: start;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,0.07);
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+  }
+  .carousel-card-img {
+    height: 148px;
+    background: linear-gradient(135deg, #dde8ff 0%, #ece4ff 100%);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    flex-shrink: 0;
+  }
+  .carousel-card-tag {
+    position: absolute; bottom:10px; left:10px;
+    background: rgba(20,30,60,0.5); color:#fff;
+    font-size:11px; padding:2px 10px; border-radius:10px;
+    backdrop-filter: blur(4px);
+  }
+  .carousel-card-body { padding:14px 14px 12px; flex:1; display:flex; flex-direction:column; gap:4px;}
+  .carousel-card-title { font-size:15px; font-weight:700; color:#1a1d26; line-height:1.45; white-space:pre-line;}
+  .carousel-card-sub { font-size:12px; color:#888; line-height:1.5; flex:1;}
+  .carousel-try {
+    width:100%; padding:11px; background:#f3f4f7;
+    border:none; border-radius:10px; font-size:14px; font-weight:600;
+    color:#1a1d26; margin-top:10px; cursor:pointer; transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .carousel-try:active { background:#e7eeff; color:#5B8CFF;}
+  .carousel-dots { display:flex; justify-content:center; gap:5px; padding:6px 0 0; flex-shrink:0;}
+  .cdot { width:6px; height:6px; border-radius:3px; background:#e0e0e0; transition:all 0.25s; flex-shrink:0;}
+  .cdot.active { background:#5B8CFF; width:16px;}
+  .carousel-quota { text-align:center; font-size:11px; color:#b5b9c2; padding:4px 0 0; flex-shrink:0;}
+
+  /* ════════════ MODE 2 — 推荐3张 + 服务芯片 ════════════ */
+  .svc-chips-bar {
+    display: none;
+    gap: 6px;
+    padding: 8px 12px 6px;
+    overflow-x: auto;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    background: #fff;
+    flex-shrink: 0;
+  }
+  .svc-chips-bar::-webkit-scrollbar { display:none; }
+  .svc-chip {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 5px 10px;
+    background: #f3f4f7;
+    border-radius: 16px;
+    font-size: 11px;
+    color: #1a1d26;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.18s;
+  }
+  .svc-chip:active { background:#dde8ff; color:#5B8CFF; }
+
   /* Toast */
   .toast {
     position: absolute;
@@ -1023,15 +1149,20 @@
     <!-- Chat sheet -->
     <div class="chat-mask" id="chatMask" onclick="closeChat()"></div>
     <div class="chat-sheet" id="chatSheet">
-      <div class="chat-header">
+      <div class="chat-header" style="position:relative;">
         <div class="chat-back" onclick="closeChat()">‹</div>
         <div class="chat-title-wrap">
           <div class="chat-title">小邦</div>
           <div class="chat-subtitle" onclick="showToast('暂无历史会话')">点击查看历史</div>
         </div>
+        <div class="mode-toggle">
+          <div class="mtab active" id="mtab1" onclick="switchMode(1)">轮播</div>
+          <div class="mtab" id="mtab2" onclick="switchMode(2)">标签</div>
+        </div>
         <div class="chat-close" onclick="closeChat()">×</div>
       </div>
       <div class="chat-body" id="chatBody"></div>
+      <div class="svc-chips-bar" id="svcChipsBar"></div>
       <div class="chat-input-bar text-mode" id="inputBar">
         <div class="voice-btn" id="voiceBtn"
              ontouchstart="startVoice(event)" ontouchend="stopVoice(event)"
@@ -1187,32 +1318,118 @@ function resetIdle() {
   }, 60000);
 }
 
-/* ---------------- Welcome ---------------- */
+/* ================================================================
+   Welcome — 两种模式
+   ================================================================ */
+let welcomeMode = 1; // 1=轮播  2=推荐3张+芯片
+
+const SVC = [
+  {icon:'💳', tag:'物业缴费',  title:'本月账单快到期了？\n在线一步完成缴费',   sub:'支持微信/支付宝/银联，缴费实时到账',     hint:'想看本月物业账单怎么交？这样说：', q:'物业费如何缴纳？'},
+  {icon:'🔧', tag:'报修服务',  title:'家里设备出了问题？\n在线报修，师傅上门', sub:'提交工单后 30 分钟内派单，实时追踪进度', hint:'家里有东西坏了要报修？这样说：',   q:'我要报修，水管漏水。'},
+  {icon:'👥', tag:'访客邀请',  title:'有亲友要来访？\n生成专属通行二维码',    sub:'支持设置来访时间与有效期，访客凭码通行', hint:'有亲友要来串门？这样说：',         q:'我要邀请访客。'},
+  {icon:'📅', tag:'预缴管理费',title:'提前预缴享 9.5 折\n最长可预缴 24 个月', sub:'余额自动抵扣月租，积分同步入账',         hint:'想一次缴清省点钱？这样说：',       q:'我要预缴管理费。'},
+  {icon:'🏗️', tag:'装修申请', title:'准备开工了？\n线上提交，快速审核',      sub:'提前 5 个工作日申请，含押金在线支付',   hint:'准备装修要走流程？这样说：',       q:'我要申请装修。'},
+  {icon:'📋', tag:'放行条申请',title:'要搬大件物品出小区？\n电子放行码秒申', sub:'上传照片审核，通过后出门出示放行码',     hint:'要搬大件物品出小区？这样说：',     q:'我要办放行条。'},
+  {icon:'🚗', tag:'车位管理',  title:'车位查询/续费/\n绑定车牌全在这里',     sub:'月租到期前 7 天自动提醒，车牌绑定即生效', hint:'想查看或续费车位？这样说：',     q:'我要管理车位。'},
+];
+
 function showWelcome() {
-  // 顶部头像 + 问候
+  if (welcomeMode === 1) showWelcomeCarousel();
+  else showWelcomeChips();
+}
+
+/* ── 切换模式 ── */
+function switchMode(m) {
+  welcomeMode = m;
+  document.getElementById('mtab1').classList.toggle('active', m===1);
+  document.getElementById('mtab2').classList.toggle('active', m===2);
+  document.getElementById('chatSheet').classList.toggle('mode-carousel', m===1);
+  document.getElementById('svcChipsBar').style.display = m===2 ? 'flex' : 'none';
+  chatBody.innerHTML = '';
+  chatStarted = false;
+  openChat();
+}
+
+/* ── MODE 1：卡片轮播 ── */
+function showWelcomeCarousel() {
+  document.getElementById('chatSheet').classList.add('mode-carousel');
+  document.getElementById('svcChipsBar').style.display = 'none';
+
+  const tabs = ['精选', ...SVC.map(s=>s.tag)];
+  const tabHtml = tabs.map((t,i)=>`<div class="ctab${i===0?' active':''}" onclick="selectCarouselTab(this,${i})">${t}</div>`).join('');
+
+  const cards = SVC.map((s,i)=>`
+    <div class="carousel-card" onclick="carouselTry(${i})">
+      <div class="carousel-card-img">${s.icon}<span class="carousel-card-tag">${s.tag}</span></div>
+      <div class="carousel-card-body">
+        <div class="carousel-card-title">${s.title}</div>
+        <div class="carousel-card-sub">${s.sub}</div>
+        <button class="carousel-try">试一试</button>
+      </div>
+    </div>`).join('');
+
+  const dots = SVC.map((_,i)=>`<div class="cdot${i===0?' active':''}" id="cdot${i}"></div>`).join('');
+
+  chatBody.style.padding = '0';
+  chatBody.style.overflowY = 'hidden';
+  chatBody.innerHTML = `
+    <div class="carousel-tabs" id="carouselTabs">${tabHtml}</div>
+    <div class="carousel-body">
+      <div class="carousel-wrap" id="carouselWrap">${cards}</div>
+      <div class="carousel-dots">${dots}</div>
+      <div class="carousel-quota">今日剩 20 次</div>
+    </div>`;
+
+  // 监听滚动同步 dots
+  const wrap = document.getElementById('carouselWrap');
+  wrap.addEventListener('scroll', ()=>{
+    const idx = Math.round(wrap.scrollLeft / wrap.offsetWidth);
+    SVC.forEach((_,i)=>{ document.getElementById('cdot'+i).classList.toggle('active', i===idx); });
+  });
+}
+function selectCarouselTab(el, idx) {
+  document.querySelectorAll('.ctab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if (idx > 0) {
+    const wrap = document.getElementById('carouselWrap');
+    const card = wrap.children[idx-1];
+    wrap.scrollTo({left: card.offsetLeft - 14, behavior:'smooth'});
+  }
+}
+function carouselTry(idx) {
+  document.getElementById('chatSheet').classList.remove('mode-carousel');
+  chatBody.innerHTML = '';
+  chatBody.style.padding = '';
+  chatBody.style.overflowY = '';
+  const s = SVC[idx];
+  setTimeout(()=>{ userMsg(s.q); handleAsk(s.q); }, 80);
+}
+
+/* ── MODE 2：推荐3张 + 芯片 ── */
+function showWelcomeChips() {
+  document.getElementById('chatSheet').classList.remove('mode-carousel');
+
+  // 头像 + 问候
   appendNode(`<div class="welcome-hero">
     <div class="welcome-avatar"></div>
     <div class="welcome-greet">hi，我是小邦，有问题都可以找我</div>
   </div>`);
 
-  // 7 项服务 → 设计稿同款"去试试"卡片
-  const suggestions = [
-    {hint:'想看本月物业账单怎么交？这样说：',     q:'物业费如何缴纳？'},
-    {hint:'想一次缴清省点钱？这样说：',           q:'我要预缴管理费。'},
-    {hint:'家里有东西坏了要报修？这样说：',       q:'我要报修，水管漏水。'},
-    {hint:'有亲友要来串门？这样说：',             q:'我要邀请访客。'},
-    {hint:'准备装修要走流程？这样说：',           q:'我要申请装修。'},
-    {hint:'要搬大件物品出小区？这样说：',         q:'我要办放行条。'},
-    {hint:'想查看或续费车位？这样说：',           q:'我要管理车位。'}
-  ];
-  const cards = suggestions.map(s=>`
+  // 精选 3 张高频服务（物业缴费/报修/访客）
+  const top3 = [SVC[0], SVC[1], SVC[2]];
+  const cards = top3.map(s=>`
     <div class="suggest-card" onclick="quickAsk('${s.q}')">
       <div class="suggest-text"><small>${s.hint}</small><q>${s.q}</q></div>
       <div class="suggest-try">去试试</div>
     </div>`).join('');
-  appendNode(`<div class="msg bot" style="max-width:92%;">
+  appendNode(`<div class="msg bot" style="max-width:96%;">
     <div class="suggest-list">${cards}</div>
   </div>`);
+
+  // 服务芯片栏（全部 7 项）
+  const bar = document.getElementById('svcChipsBar');
+  bar.style.display = 'flex';
+  bar.innerHTML = SVC.map(s=>`<div class="svc-chip" onclick="quickAsk('${s.q}')">${s.icon} ${s.tag}</div>`).join('');
 }
 
 /* ---------------- Quick ask from outside ---------------- */
