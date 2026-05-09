@@ -1210,25 +1210,6 @@ function showWelcome() {
   appendNode(`<div class="msg bot" style="max-width:92%;">
     <div class="suggest-list">${cards}</div>
   </div>`);
-
-  // 仍提供"全部服务"入口（保留 7 项服务功能不变）
-  const services = [
-    {icon:'💳', name:'物业缴费', desc:'账单缴费',  q:'物业费如何缴纳？'},
-    {icon:'📅', name:'预缴管理费', desc:'享9.5折', q:'我要预缴管理费'},
-    {icon:'🔧', name:'报修服务', desc:'在线报修', q:'我要报修'},
-    {icon:'👥', name:'访客邀请', desc:'生成通行码', q:'我要邀请访客'},
-    {icon:'🏗️', name:'装修申请', desc:'线上提交', q:'我要申请装修'},
-    {icon:'📋', name:'放行条申请', desc:'电子放行', q:'我要办放行条'},
-    {icon:'🚗', name:'车位管理', desc:'车位续费', q:'我要管理车位'}
-  ];
-  const grid = services.map(s=>`<div class="svc-item" onclick="quickAsk('${s.q}')">
-      <div class="svc-item-icon">${s.icon}</div>
-      <div class="svc-item-text"><b>${s.name}</b><small>${s.desc}</small></div>
-    </div>`).join('');
-  appendNode(`<div class="msg bot" style="max-width:92%;">
-    <div class="bubble"><span class="quick-item-tag">全部服务</span>
-      <div class="svc-grid">${grid}</div>
-    </div></div>`);
 }
 
 /* ---------------- Quick ask from outside ---------------- */
