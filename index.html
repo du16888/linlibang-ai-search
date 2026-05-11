@@ -897,36 +897,42 @@
     width:24px; height:3px; background:#1a1d26; border-radius:2px;
   }
 
-  /* 3 卡同屏轮播 */
-  .carousel-body { flex:1; overflow:hidden; display:flex; flex-direction:column; padding: 10px 0 0;}
+  /* 3 卡同屏轮播 — 中心放大、侧卡缩小变淡 */
+  .carousel-body { flex:1; overflow:hidden; display:flex; flex-direction:column; padding: 4px 0 0;}
   .carousel-wrap {
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     display: flex;
-    gap: 10px;
-    padding: 18px 33% 16px;
+    gap: 8px;
+    padding: 30px 34% 20px;
     -webkit-overflow-scrolling: touch;
     flex: 1;
-    align-items: flex-start;
+    align-items: center;
   }
   .carousel-wrap::-webkit-scrollbar { display:none; }
   .carousel-card {
     flex-shrink: 0;
-    width: 33%;
+    width: 31%;
     scroll-snap-align: center;
     background: #fff;
     border-radius: 18px;
-    box-shadow: 0 6px 20px rgba(91,140,255,0.10), 0 1px 4px rgba(20,30,60,0.04);
+    box-shadow: 0 4px 12px rgba(91,140,255,0.06);
     overflow: hidden;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     padding: 10px 10px 12px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transform: scale(0.82);
+    opacity: 0.55;
+    transform-origin: center center;
+    transition: transform 0.35s ease, opacity 0.35s ease, box-shadow 0.35s ease;
+    position: relative;
   }
   .carousel-card.is-center {
-    transform: translateY(-12px) scale(1.02);
-    box-shadow: 0 16px 36px rgba(91,140,255,0.18), 0 4px 12px rgba(20,30,60,0.06);
+    transform: scale(1.08) translateY(-6px);
+    opacity: 1;
+    box-shadow: 0 18px 38px rgba(91,140,255,0.22), 0 6px 16px rgba(20,30,60,0.06);
+    z-index: 2;
   }
   .carousel-card-img {
     height: 130px;
