@@ -832,16 +832,11 @@
   }
   .mtab.active { background:#fff; color:#5B8CFF; font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,0.08);}
 
-  /* ════════════ MODE 1 — 卡片轮播（小米任务助理风格） ════════════ */
+  /* ════════════ MODE 1 — 卡片轮播（邻里邦助手设计稿） ════════════ */
   .chat-sheet.mode-carousel {
     max-height: 92%;
-    background:
-      radial-gradient(circle at 12% 18%, rgba(196,176,255,0.45) 0%, transparent 36%),
-      radial-gradient(circle at 88% 10%, rgba(255,196,235,0.38) 0%, transparent 38%),
-      radial-gradient(circle at 50% 95%, rgba(178,206,255,0.35) 0%, transparent 45%),
-      linear-gradient(180deg, #f7f4ff 0%, #ffffff 60%, #ffffff 100%);
+    background: linear-gradient(180deg, #e8f0ff 0%, #eef4ff 18%, #f4f7ff 38%, #ffffff 70%, #ffffff 100%);
   }
-  /* 轮播模式下隐藏 header 中央标题，让 hero 显主标题 */
   .chat-sheet.mode-carousel .chat-title-wrap { visibility: hidden; }
   .chat-sheet.mode-carousel .chat-header { border-bottom: none; background: transparent;}
   .chat-sheet.mode-carousel .chat-input-bar { background: transparent; border-top: none;}
@@ -851,124 +846,147 @@
   .carousel-hero {
     flex-shrink: 0;
     text-align: center;
-    padding: 4px 14px 10px;
-    position: relative;
+    padding: 4px 14px 14px;
   }
   .carousel-hero-logo {
-    font-size: 40px;
+    font-size: 46px;
     color: #1a1d26;
-    margin-bottom: 2px;
+    margin-bottom: 8px;
     line-height: 1;
-    font-weight: 100;
+    font-weight: 900;
+    letter-spacing: -2px;
   }
   .carousel-hero-title {
-    font-size: 22px; font-weight: 700; color: #1a1d26;
+    font-size: 24px; font-weight: 700; color: #1a1d26;
     display: inline-flex; align-items: center; gap: 6px; line-height: 1.2;
   }
   .carousel-hero-beta {
     font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
-    background: #1a1d26; color: #fff;
-    padding: 2px 5px; border-radius: 3px;
-    transform: translateY(-6px);
+    background: linear-gradient(135deg, #a78bfa, #818cf8);
+    color: #fff;
+    padding: 2px 6px; border-radius: 4px;
+    transform: translateY(-8px);
   }
   .carousel-hero-sub {
-    font-size: 13px; color: #888; margin-top: 4px;
+    font-size: 14px; color: #9aa0ad; margin-top: 6px; font-weight: 400;
   }
-  .carousel-mytask {
-    position: absolute;
-    right: 14px; top: 6px;
-    background: rgba(20,30,60,0.06);
-    padding: 5px 12px; border-radius: 14px;
-    font-size: 12px; color: #1a1d26;
-    cursor: pointer;
-    backdrop-filter: blur(8px);
-    z-index: 2;
-  }
-  .carousel-mytask:active { background: rgba(20,30,60,0.1);}
 
   /* Tabs */
   .carousel-tabs {
     display: flex;
     overflow-x: auto;
-    padding: 0 14px;
-    gap: 0;
+    padding: 8px 18px 4px;
+    gap: 4px;
     flex-shrink: 0;
+    justify-content: flex-start;
   }
   .carousel-tabs::-webkit-scrollbar { display:none; }
   .ctab {
     flex-shrink: 0;
-    padding: 10px 12px;
-    font-size: 14px;
-    color: #888;
+    padding: 10px 18px;
+    font-size: 15px;
+    color: #9aa0ad;
     position: relative;
     cursor: pointer;
     white-space: nowrap;
+    font-weight: 500;
   }
-  .ctab.active { color:#1a1d26; font-weight:700; font-size: 15px;}
+  .ctab.active { color:#1a1d26; font-weight:700;}
   .ctab.active::after {
-    content:""; position:absolute; bottom:4px; left:50%; transform:translateX(-50%);
-    width:18px; height:2.5px; background:#1a1d26; border-radius:2px;
+    content:""; position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+    width:24px; height:3px; background:#1a1d26; border-radius:2px;
   }
 
-  /* 3D 峰值轮播 */
-  .carousel-body { flex:1; overflow:hidden; display:flex; flex-direction:column; padding: 14px 0 0;}
+  /* 3 卡同屏轮播 */
+  .carousel-body { flex:1; overflow:hidden; display:flex; flex-direction:column; padding: 10px 0 0;}
   .carousel-wrap {
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     display: flex;
-    gap: 12px;
-    padding: 6px 14% 12px;
+    gap: 10px;
+    padding: 18px 33% 16px;
     -webkit-overflow-scrolling: touch;
     flex: 1;
-    perspective: 800px;
+    align-items: flex-start;
   }
   .carousel-wrap::-webkit-scrollbar { display:none; }
   .carousel-card {
     flex-shrink: 0;
-    width: 72%;
+    width: 33%;
     scroll-snap-align: center;
     background: #fff;
-    border-radius: 22px;
-    box-shadow: 0 12px 32px rgba(110,90,180,0.14), 0 2px 8px rgba(20,30,60,0.04);
+    border-radius: 18px;
+    box-shadow: 0 6px 20px rgba(91,140,255,0.10), 0 1px 4px rgba(20,30,60,0.04);
     overflow: hidden;
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    transition: transform 0.35s ease, opacity 0.35s ease;
+    padding: 10px 10px 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .carousel-card.is-center {
+    transform: translateY(-12px) scale(1.02);
+    box-shadow: 0 16px 36px rgba(91,140,255,0.18), 0 4px 12px rgba(20,30,60,0.06);
   }
   .carousel-card-img {
-    height: 200px;
-    background: linear-gradient(135deg, #f6f1ff 0%, #fff5ee 50%, #eef5ff 100%);
+    height: 130px;
+    border-radius: 12px;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 78px;
+    font-size: 56px;
     flex-shrink: 0;
-    margin: 14px 14px 0;
-    border-radius: 18px;
+    overflow: hidden;
   }
-  .carousel-card-tag {
-    position: absolute; bottom:10px; left:10px;
-    background: rgba(255,255,255,0.85); color:#1a1d26;
-    font-size:11px; padding:3px 10px; border-radius:12px;
-    backdrop-filter: blur(6px);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    font-weight: 500;
+  /* 不同服务的插画底色 */
+  .carousel-card[data-svc="0"] .carousel-card-img { background: linear-gradient(135deg, #d4f5e9 0%, #fef9c3 60%, #fde68a 100%);}
+  .carousel-card[data-svc="1"] .carousel-card-img { background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 60%, #fbbf24 100%);}
+  .carousel-card[data-svc="2"] .carousel-card-img { background: linear-gradient(135deg, #dbeafe 0%, #c7d2fe 100%);}
+  .carousel-card[data-svc="3"] .carousel-card-img { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);}
+  .carousel-card[data-svc="4"] .carousel-card-img { background: linear-gradient(135deg, #fce7f3 0%, #f9a8d4 50%, #e0f2fe 100%);}
+  .carousel-card[data-svc="5"] .carousel-card-img { background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);}
+  .carousel-card[data-svc="6"] .carousel-card-img { background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%);}
+
+  /* 彩色分类胶囊 */
+  .carousel-card-cat {
+    display: inline-block;
+    align-self: flex-start;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 10px;
   }
-  .carousel-card-body { padding:12px 16px 16px; flex:1; display:flex; flex-direction:column; gap:4px;}
-  .carousel-card-title { font-size:15px; font-weight:700; color:#1a1d26; line-height:1.45; white-space:pre-line;}
+  .carousel-card[data-svc="0"] .carousel-card-cat { background:#dcfce7; color:#16a34a;}
+  .carousel-card[data-svc="1"] .carousel-card-cat { background:#dbeafe; color:#2563eb;}
+  .carousel-card[data-svc="2"] .carousel-card-cat { background:#ffedd5; color:#ea580c;}
+  .carousel-card[data-svc="3"] .carousel-card-cat { background:#fef3c7; color:#d97706;}
+  .carousel-card[data-svc="4"] .carousel-card-cat { background:#ede9fe; color:#7c3aed;}
+  .carousel-card[data-svc="5"] .carousel-card-cat { background:#fce7f3; color:#db2777;}
+  .carousel-card[data-svc="6"] .carousel-card-cat { background:#dbeafe; color:#1d4ed8;}
+
+  .carousel-card-title { font-size:15px; font-weight:700; color:#1a1d26; line-height:1.35; margin-top:6px;}
+  .carousel-card-sub {
+    font-size: 12px; color: #888; line-height: 1.5;
+    margin-top: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1;
+  }
   .carousel-try {
-    width:100%; padding:12px; background:#f3f4f7;
-    border:none; border-radius:12px; font-size:14px; font-weight:600;
+    width:100%; padding:9px; background:#f3f4f7;
+    border:none; border-radius:10px; font-size:13px; font-weight:600;
     color:#1a1d26; margin-top:10px; cursor:pointer; transition: background 0.2s;
     flex-shrink: 0;
   }
   .carousel-try:active { background:#e7eeff; color:#5B8CFF;}
-  .carousel-dots { display:flex; justify-content:center; gap:5px; padding:6px 0 0; flex-shrink:0;}
+  .carousel-dots { display:flex; justify-content:center; gap:5px; padding:8px 0 0; flex-shrink:0;}
   .cdot { width:6px; height:6px; border-radius:3px; background:#d8d8e0; transition:all 0.25s; flex-shrink:0;}
   .cdot.active { background:#1a1d26; width:18px;}
-  .carousel-quota { text-align:center; font-size:11px; color:#b5b9c2; padding:8px 0 4px; flex-shrink:0;}
+  .carousel-quota { text-align:center; font-size:11px; color:#b5b9c2; padding:6px 0 2px; flex-shrink:0;}
 
   /* ════════════ MODE 2 — 推荐3张 + 服务芯片 ════════════ */
   .svc-chips-bar {
@@ -1215,8 +1233,8 @@
           <div class="chat-subtitle" onclick="showToast('暂无历史会话')">点击查看历史</div>
         </div>
         <div class="mode-toggle">
-          <div class="mtab active" id="mtab1" onclick="switchMode(1)">轮播</div>
-          <div class="mtab" id="mtab2" onclick="switchMode(2)">标签</div>
+          <div class="mtab" id="mtab1" onclick="switchMode(1)">轮播</div>
+          <div class="mtab active" id="mtab2" onclick="switchMode(2)">标签</div>
         </div>
         <div class="chat-close" onclick="closeChat()">×</div>
       </div>
@@ -1380,16 +1398,16 @@ function resetIdle() {
 /* ================================================================
    Welcome — 两种模式
    ================================================================ */
-let welcomeMode = 1; // 1=轮播  2=推荐3张+芯片
+let welcomeMode = 2; // 1=轮播  2=推荐3张+芯片（默认）
 
 const SVC = [
-  {icon:'💳', tag:'物业缴费',  title:'本月账单快到期了？\n在线一步完成缴费',   sub:'支持微信/支付宝/银联，缴费实时到账',     hint:'想看本月物业账单怎么交？这样说：', q:'物业费如何缴纳？'},
-  {icon:'🔧', tag:'报修服务',  title:'家里设备出了问题？\n在线报修，师傅上门', sub:'提交工单后 30 分钟内派单，实时追踪进度', hint:'家里有东西坏了要报修？这样说：',   q:'我要报修，水管漏水。'},
-  {icon:'👥', tag:'访客邀请',  title:'有亲友要来访？\n生成专属通行二维码',    sub:'支持设置来访时间与有效期，访客凭码通行', hint:'有亲友要来串门？这样说：',         q:'我要邀请访客。'},
-  {icon:'📅', tag:'预缴管理费',title:'提前预缴享 9.5 折\n最长可预缴 24 个月', sub:'余额自动抵扣月租，积分同步入账',         hint:'想一次缴清省点钱？这样说：',       q:'我要预缴管理费。'},
-  {icon:'🏗️', tag:'装修申请', title:'准备开工了？\n线上提交，快速审核',      sub:'提前 5 个工作日申请，含押金在线支付',   hint:'准备装修要走流程？这样说：',       q:'我要申请装修。'},
-  {icon:'📋', tag:'放行条申请',title:'要搬大件物品出小区？\n电子放行码秒申', sub:'上传照片审核，通过后出门出示放行码',     hint:'要搬大件物品出小区？这样说：',     q:'我要办放行条。'},
-  {icon:'🚗', tag:'车位管理',  title:'车位查询/续费/\n绑定车牌全在这里',     sub:'月租到期前 7 天自动提醒，车牌绑定即生效', hint:'想查看或续费车位？这样说：',     q:'我要管理车位。'},
+  {icon:'🏠', tag:'物业缴费',  cat:'物业服务', title:'物业缴费', sub:'在线缴纳物业费\n账单清晰，方便快捷',    hint:'想看本月物业账单怎么交？这样说：', q:'物业费如何缴纳？'},
+  {icon:'🛠️', tag:'维修工单', cat:'维修服务', title:'维修工单', sub:'一键提交维修工单\n快速响应，及时处理',    hint:'家里有东西坏了要报修？这样说：',   q:'我要报修，水管漏水。'},
+  {icon:'👥', tag:'访客邀请',  cat:'访客服务', title:'访客邀请', sub:'生成专属通行二维码\n设置时间，凭码通行',  hint:'有亲友要来串门？这样说：',         q:'我要邀请访客。'},
+  {icon:'📅', tag:'预缴管理费',cat:'物业服务', title:'预缴管理费', sub:'提前预缴享 9.5 折\n最长可预缴 24 个月', hint:'想一次缴清省点钱？这样说：',     q:'我要预缴管理费。'},
+  {icon:'🏗️', tag:'装修申请', cat:'装修服务', title:'装修申请', sub:'线上提交装修申请\n流程透明，省心省力',   hint:'准备装修要走流程？这样说：',       q:'我要申请装修。'},
+  {icon:'📋', tag:'放行条申请',cat:'通行服务', title:'放行条申请', sub:'电子放行码秒申\n上传审核，凭码出门',   hint:'要搬大件物品出小区？这样说：',     q:'我要办放行条。'},
+  {icon:'🚗', tag:'车位管理',  cat:'车位服务', title:'车位管理', sub:'车位查询/续费/\n绑定车牌全在这里',     hint:'想查看或续费车位？这样说：',       q:'我要管理车位。'},
 ];
 
 function showWelcome() {
@@ -1409,21 +1427,20 @@ function switchMode(m) {
   openChat();
 }
 
-/* ── MODE 1：卡片轮播（任务助理风格） ── */
+/* ── MODE 1：卡片轮播（邻里邦助手设计稿） ── */
 function showWelcomeCarousel() {
   document.getElementById('chatSheet').classList.add('mode-carousel');
   document.getElementById('svcChipsBar').style.display = 'none';
 
-  const tabs = ['精选', ...SVC.map(s=>s.tag)];
-  const tabHtml = tabs.map((t,i)=>`<div class="ctab${i===0?' active':''}" onclick="selectCarouselTab(this,${i})">${t}</div>`).join('');
+  const tabHtml = SVC.map((s,i)=>`<div class="ctab${i===0?' active':''}" onclick="selectCarouselTab(this,${i})">${s.tag}</div>`).join('');
 
   const cards = SVC.map((s,i)=>`
-    <div class="carousel-card" onclick="carouselTry(${i})">
-      <div class="carousel-card-img">${s.icon}<span class="carousel-card-tag">${s.tag}</span></div>
-      <div class="carousel-card-body">
-        <div class="carousel-card-title">${s.title}</div>
-        <button class="carousel-try">试一试</button>
-      </div>
+    <div class="carousel-card${i===0?' is-center':''}" data-svc="${i}" onclick="carouselTry(${i})">
+      <div class="carousel-card-img">${s.icon}</div>
+      <div class="carousel-card-cat">${s.cat}</div>
+      <div class="carousel-card-title">${s.title}</div>
+      <div class="carousel-card-sub">${s.sub}</div>
+      <button class="carousel-try">试一试</button>
     </div>`).join('');
 
   const dots = SVC.map((_,i)=>`<div class="cdot${i===0?' active':''}" id="cdot${i}"></div>`).join('');
@@ -1432,10 +1449,9 @@ function showWelcomeCarousel() {
   chatBody.style.overflowY = 'auto';
   chatBody.innerHTML = `
     <div class="carousel-hero">
-      <div class="carousel-mytask" onclick="showToast('暂无工单')">我的工单</div>
-      <div class="carousel-hero-logo">✦</div>
-      <div class="carousel-hero-title">小邦<span class="carousel-hero-beta">BETA</span></div>
-      <div class="carousel-hero-sub">智能物业服务，一句话办妥</div>
+      <div class="carousel-hero-logo">❋</div>
+      <div class="carousel-hero-title">邻里邦助手<span class="carousel-hero-beta">BETA</span></div>
+      <div class="carousel-hero-sub">欢迎向我提问</div>
     </div>
     <div class="carousel-tabs" id="carouselTabs">${tabHtml}</div>
     <div class="carousel-body">
@@ -1444,35 +1460,27 @@ function showWelcomeCarousel() {
       <div class="carousel-quota">今日剩 20 次</div>
     </div>`;
 
-  // 监听滚动同步 dots + tabs
+  // 滚动联动：dots / tabs / is-center
   const wrap = document.getElementById('carouselWrap');
-  wrap.addEventListener('scroll', ()=>{
-    // 用第一张卡的位置算偏移
-    const cardW = wrap.children[0].offsetWidth + 12; // 卡宽 + gap
+  const ctabs = document.querySelectorAll('.ctab');
+  const updateActive = () => {
+    const cardW = wrap.children[0].offsetWidth + 10; // 宽 + gap
     const idx = Math.max(0, Math.min(SVC.length-1, Math.round(wrap.scrollLeft / cardW)));
-    SVC.forEach((_,i)=>{ document.getElementById('cdot'+i).classList.toggle('active', i===idx); });
-    // tabs 跟随：精选不变；滚动时高亮对应服务标签
-    const ctabs = document.querySelectorAll('.ctab');
-    ctabs.forEach((t,j)=>t.classList.toggle('active', j === idx+1 ? true : (j===0 && idx===0 ? false : false)));
-    // 简化逻辑：滚到第 idx 张时第 idx+1 个 tab 高亮（精选 = 第 0 个仅初始）
-    if (wrap.scrollLeft > 8) {
-      ctabs.forEach((t,j)=>t.classList.toggle('active', j === idx+1));
-    } else {
-      ctabs.forEach((t,j)=>t.classList.toggle('active', j === 0));
-    }
-  });
+    SVC.forEach((_,i)=>{
+      document.getElementById('cdot'+i).classList.toggle('active', i===idx);
+      wrap.children[i].classList.toggle('is-center', i===idx);
+    });
+    ctabs.forEach((t,j)=>t.classList.toggle('active', j === idx));
+  };
+  wrap.addEventListener('scroll', updateActive);
 }
 function selectCarouselTab(el, idx) {
   document.querySelectorAll('.ctab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
   const wrap = document.getElementById('carouselWrap');
-  if (idx === 0) {
-    wrap.scrollTo({left: 0, behavior:'smooth'});
-  } else {
-    const card = wrap.children[idx-1];
-    const target = card.offsetLeft - (wrap.offsetWidth - card.offsetWidth)/2;
-    wrap.scrollTo({left: target, behavior:'smooth'});
-  }
+  const card = wrap.children[idx];
+  const target = card.offsetLeft - (wrap.offsetWidth - card.offsetWidth)/2;
+  wrap.scrollTo({left: target, behavior:'smooth'});
 }
 function carouselTry(idx) {
   document.getElementById('chatSheet').classList.remove('mode-carousel');
