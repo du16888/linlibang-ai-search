@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>邻里邦 AI 助手 · 原型流程图</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background:
+      radial-gradient(circle at 0% 0%, #f0f4ff 0%, transparent 35%),
+      radial-gradient(circle at 100% 100%, #fff0f5 0%, transparent 35%),
+      linear-gradient(180deg, #fafbfd 0%, #f3f5fa 100%);
+    color: #1a1d26;
+    min-height: 100vh;
+    overflow-x: auto;
+    overflow-y: auto;
+  }
+
+  /* Top Bar */
+  .topbar {
+    position: sticky; top: 0; left: 0; z-index: 100;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(20,30,60,0.06);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 1px 8px rgba(20,30,60,0.04);
+  }
+  .topbar h1 { font-size: 18px; font-weight: 700; color: #1a1d26;}
+  .topbar h1 .beta { font-size: 10px; background: linear-gradient(135deg, #a78bfa, #818cf8); color: #fff; padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; font-weight: 600;}
+  .topbar .sep { width: 1px; height: 20px; background: #e5e7eb; margin: 0 4px;}
+  .topbar .subtitle { font-size: 13px; color: #888;}
+  .topbar .actions { margin-left: auto; display: flex; gap: 8px;}
+  .topbar a, .topbar button {
+    font-size: 13px; padding: 6px 14px;
+    border-radius: 16px; cursor: pointer; text-decoration: none;
+    background: #f3f4f7; border: 1px solid transparent; color: #1a1d26;
+    font-family: inherit;
+  }
+  .topbar a.primary, .topbar button.primary {
+    background: linear-gradient(135deg, #5B8CFF, #7A5CFF); color: #fff;
+  }
+  .topbar a:hover, .topbar button:hover { filter: brightness(0.97);}
+  .legend {
+    display: flex; gap: 14px; align-items: center; font-size: 12px; color: #555;
+  }
+  .legend-item { display:inline-flex; align-items: center; gap: 6px;}
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%;}
+
+  /* Canvas */
+  .canvas {
+    position: relative;
+    width: 4800px;
+    min-height: 3400px;
+    padding: 60px 80px;
+  }
+
+  /* SVG connectors */
+  .connectors {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Lanes */
+  .lane-label {
+    position: absolute;
+    font-size: 14px; font-weight: 700;
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(20,30,60,0.10);
+    z-index: 2;
+    letter-spacing: 1px;
+  }
+  .lane-line {
+    position: absolute;
+    height: 1px;
+    background: repeating-linear-gradient(90deg, rgba(20,30,60,0.10) 0 8px, transparent 8px 16px);
+    z-index: 0;
+  }
+  .stage-tag {
+    position: absolute;
+    font-size: 11px; font-weight: 600; color: #888;
+    background: rgba(255,255,255,0.6);
+    padding: 4px 10px; border-radius: 10px;
+    border: 1px dashed rgba(20,30,60,0.12);
+    z-index: 2;
+  }
+
+  /* Phone Node */
+  .node {
+    position: absolute;
+    width: 260px;
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 10px 28px rgba(20,30,60,0.10), 0 2px 6px rgba(20,30,60,0.04);
+    overflow: hidden;
+    z-index: 5;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .node:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 40px rgba(91,140,255,0.18);
+    z-index: 10;
+  }
+  .node-title {
+    background: linear-gradient(135deg, #5B8CFF, #7A5CFF);
+    color: #fff;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .node-title .badge {
+    margin-left: auto;
+    background: rgba(255,255,255,0.22);
+    padding: 2px 7px; border-radius: 8px;
+    font-size: 10px; font-weight: 500;
+  }
+  .node-screen {
+    width: 100%;
+    aspect-ratio: 9/19;
+    background: #fff;
+    overflow: hidden;
+    position: relative;
+    display: flex; flex-direction: column;
+    font-size: 9px;
+  }
+  .node-desc {
+    padding: 8px 12px 10px;
+    font-size: 11px;
+    color: #6b7280;
+    line-height: 1.5;
+    border-top: 1px solid rgba(20,30,60,0.05);
+    background: #fafbfd;
+  }
+  .node-desc b { color: #1a1d26;}
+
+  /* Stage colors */
+  .lane-entry { background: linear-gradient(135deg, #5B8CFF, #7A5CFF);}
+  .lane-welcome { background: linear-gradient(135deg, #10b981, #059669);}
+  .lane-pay { background: linear-gradient(135deg, #f59e0b, #d97706);}
+  .lane-repair { background: linear-gradient(135deg, #3b82f6, #2563eb);}
+  .lane-visitor { background: linear-gradient(135deg, #ec4899, #db2777);}
+  .lane-prepay { background: linear-gradient(135deg, #eab308, #ca8a04);}
+  .lane-deco { background: linear-gradient(135deg, #8b5cf6, #7c3aed);}
+  .lane-pass { background: linear-gradient(135deg, #06b6d4, #0891b2);}
+  .lane-parking { background: linear-gradient(135deg, #6366f1, #4f46e5);}
+
+  .node[data-stage="entry"] .node-title { background: linear-gradient(135deg, #5B8CFF, #7A5CFF);}
+  .node[data-stage="welcome"] .node-title { background: linear-gradient(135deg, #10b981, #059669);}
+  .node[data-stage="pay"] .node-title { background: linear-gradient(135deg, #f59e0b, #d97706);}
+  .node[data-stage="repair"] .node-title { background: linear-gradient(135deg, #3b82f6, #2563eb);}
+  .node[data-stage="visitor"] .node-title { background: linear-gradient(135deg, #ec4899, #db2777);}
+  .node[data-stage="prepay"] .node-title { background: linear-gradient(135deg, #eab308, #ca8a04);}
+  .node[data-stage="deco"] .node-title { background: linear-gradient(135deg, #8b5cf6, #7c3aed);}
+  .node[data-stage="pass"] .node-title { background: linear-gradient(135deg, #06b6d4, #0891b2);}
+  .node[data-stage="parking"] .node-title { background: linear-gradient(135deg, #6366f1, #4f46e5);}
+  .node[data-stage="end"] .node-title { background: linear-gradient(135deg, #6b7280, #4b5563);}
+
+  /* ============ Screen mock styles ============ */
+  /* Home */
+  .scr {
+    flex: 1;
+    background: linear-gradient(180deg, #5B8CFF 0%, #7A5CFF 60%, #6366f1 100%);
+    color: #fff;
+    padding: 8px 10px;
+    display: flex; flex-direction: column;
+    gap: 6px;
+    font-size: 9px;
+  }
+  .scr-statusbar { display:flex; justify-content:space-between; font-size:8px; opacity:0.9;}
+  .scr-locrow { display:flex; align-items:center; gap:4px; font-size:9px; margin-top:2px;}
+  .scr-ai-pill {
+    margin-left: auto;
+    background: rgba(255,255,255,0.25);
+    padding: 2px 8px; border-radius: 10px;
+    font-size: 8px; font-weight: 600;
+    box-shadow: 0 0 8px rgba(255,255,255,0.4);
+  }
+  .scr-card {
+    background: rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-size: 8px;
+    backdrop-filter: blur(6px);
+  }
+  .scr-grid {
+    background: #fff;
+    color: #1a1d26;
+    border-radius: 10px;
+    padding: 8px;
+    margin-top: auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px 2px;
+    text-align: center;
+  }
+  .scr-grid div { font-size: 8px; }
+  .scr-grid div::before {
+    content: "■"; display: block;
+    font-size: 14px; color: #5B8CFF;
+  }
+  .scr-nav {
+    background: #fff;
+    color: #1a1d26;
+    height: 22px;
+    display: flex; align-items: center; justify-content: space-around;
+    font-size: 8px; border-top: 1px solid #eee;
+    margin: 0 -10px -8px;
+    padding: 0 10px;
+  }
+  .scr-nav .active { color: #5B8CFF; font-weight: 700;}
+
+  /* Chat screen */
+  .scr-chat {
+    flex: 1;
+    background: #fff;
+    color: #1a1d26;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .scr-chat-header {
+    height: 28px;
+    border-bottom: 1px solid rgba(20,30,60,0.05);
+    display:flex; align-items:center; justify-content:center;
+    font-size: 10px; font-weight:700;
+    position: relative; flex-shrink: 0;
+    background: #fff;
+  }
+  .scr-chat-header::before { content: "‹"; position:absolute; left: 8px; font-size: 14px;}
+  .scr-chat-header::after { content: "×"; position:absolute; right: 8px; font-size: 12px;}
+  .scr-chat-mode {
+    position: absolute; right: 24px; top: 7px;
+    background: #f3f4f7; padding: 1px 4px; border-radius: 6px; font-size: 6px;
+  }
+  .scr-chat-body {
+    flex: 1;
+    padding: 6px 8px;
+    display: flex; flex-direction: column;
+    gap: 4px;
+    overflow: hidden;
+    background: #fff;
+    font-size: 8px;
+  }
+  .scr-bubble {
+    background: #f3f4f7;
+    border-radius: 8px;
+    padding: 4px 6px;
+    max-width: 75%;
+    line-height: 1.45;
+  }
+  .scr-bubble.user {
+    background: linear-gradient(135deg, #5B8CFF, #7A5CFF);
+    color: #fff;
+    align-self: flex-end;
+  }
+  .scr-bubble.bot { align-self: flex-start;}
+  .scr-card2 {
+    background: #f8f9fb;
+    border: 1px solid rgba(20,30,60,0.05);
+    border-radius: 8px;
+    padding: 5px 7px;
+    font-size: 8px;
+    line-height: 1.5;
+  }
+  .scr-card2 b { font-weight: 700;}
+  .scr-card2 .row { display: flex; justify-content: space-between; margin-top: 2px;}
+  .scr-btnrow { display: flex; gap: 4px; margin-top: 4px;}
+  .scr-btn {
+    flex: 1;
+    padding: 3px 4px;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 7px;
+    background: linear-gradient(135deg, #5B8CFF, #7A5CFF);
+    color: #fff;
+    font-weight: 600;
+  }
+  .scr-btn.sec { background: #fff; color: #5B8CFF; border: 1px solid rgba(91,140,255,0.3);}
+  .scr-chips {
+    display: flex; gap: 3px;
+    border-top: 1px solid rgba(20,30,60,0.05);
+    padding: 4px 6px;
+    background: #fff;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .scr-chip {
+    padding: 2px 5px;
+    background: #f3f4f7;
+    border-radius: 8px;
+    font-size: 6px;
+    flex-shrink: 0;
+  }
+  .scr-input {
+    margin: 0 6px 6px;
+    height: 18px;
+    background: #f3f4f7;
+    border-radius: 8px;
+    padding: 0 6px;
+    display: flex; align-items: center;
+    font-size: 7px;
+    color: #aaa;
+    flex-shrink: 0;
+  }
+  .scr-input::after { content: "🎙"; margin-left:auto;}
+
+  /* Welcome mode2 */
+  .scr-hero {
+    text-align: center; padding: 8px 6px 4px;
+  }
+  .scr-hero-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #5B8CFF, #7A5CFF);
+    margin: 0 auto 3px;
+  }
+  .scr-hero-greet { font-size: 8px; color: #555;}
+  .scr-suggest {
+    background: #f8f9fb;
+    border: 1px solid rgba(20,30,60,0.05);
+    border-radius: 8px;
+    padding: 4px 6px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 7px;
+    margin-bottom: 3px;
+  }
+  .scr-suggest .quote { background: rgba(91,140,255,0.08); padding: 1px 4px; border-radius: 4px; color: #5B8CFF;}
+  .scr-suggest .try-btn { background: #5B8CFF; color: #fff; padding: 1px 5px; border-radius: 8px; font-weight: 600; flex-shrink:0;}
+
+  /* Welcome mode1 carousel */
+  .scr-mode1 {
+    flex: 1; background: linear-gradient(180deg, #e8f0ff 0%, #f4f7ff 30%, #fff 60%);
+    display: flex; flex-direction: column; padding: 6px 0 0;
+  }
+  .scr-mode1-hero { text-align: center; padding: 4px 4px 8px;}
+  .scr-mode1-hero .star { font-size: 16px; font-weight: 900; color: #1a1d26; line-height: 1;}
+  .scr-mode1-hero .title { font-size: 10px; font-weight: 700; margin-top: 2px;}
+  .scr-mode1-hero .beta { font-size: 6px; background: linear-gradient(135deg, #a78bfa, #818cf8); color: #fff; padding: 1px 3px; border-radius: 2px; margin-left: 2px; vertical-align: top;}
+  .scr-mode1-hero .sub { font-size: 7px; color: #888; margin-top: 1px;}
+  .scr-mode1-tabs { display: flex; gap: 3px; padding: 0 4px; font-size: 7px; color: #888;}
+  .scr-mode1-tabs .active { color: #1a1d26; font-weight: 700; position: relative;}
+  .scr-mode1-tabs .active::after { content:""; position:absolute; bottom:-2px; left:25%; right:25%; height:2px; background:#1a1d26; border-radius:1px;}
+  .scr-mode1-cards { display:flex; gap: 3px; padding: 8px 4px 4px; align-items: center;}
+  .scr-mode1-card {
+    flex: 1;
+    background: #fff;
+    border-radius: 6px;
+    padding: 3px;
+    box-shadow: 0 2px 6px rgba(91,140,255,0.08);
+    transform: scale(0.85);
+    opacity: 0.6;
+    text-align: center;
+    font-size: 6px;
+  }
+  .scr-mode1-card.center { transform: scale(1.1); opacity: 1; box-shadow: 0 6px 14px rgba(91,140,255,0.2);}
+  .scr-mode1-card .img {
+    height: 30px; border-radius: 4px;
+    background: linear-gradient(135deg, #dbeafe, #c7d2fe);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    margin-bottom: 2px;
+  }
+  .scr-mode1-card .cat {
+    display: inline-block; padding: 0px 3px; font-size: 5px;
+    background: #dbeafe; color: #2563eb; border-radius: 3px; margin-bottom: 2px;
+  }
+  .scr-mode1-card .ttl { font-weight: 700; font-size: 6px;}
+  .scr-mode1-card .try { background: #f3f4f7; border-radius: 3px; padding: 1px 0; margin-top: 2px; font-size: 5px;}
+  .scr-mode1-dots { display:flex; justify-content:center; gap:2px; padding-top:2px;}
+  .scr-mode1-dots i { width: 3px; height: 3px; background: #d8d8e0; border-radius: 2px; display:inline-block;}
+  .scr-mode1-dots i.active { background: #1a1d26; width: 8px;}
+
+  /* Ticket form */
+  .scr-ticket {
+    background: #f8f9fb;
+    border: 1px solid rgba(20,30,60,0.05);
+    border-radius: 8px;
+    padding: 5px 6px;
+    font-size: 7px;
+  }
+  .scr-ticket-title { font-weight: 700; font-size: 8px; margin-bottom: 3px;}
+  .scr-ticket-row { background: #fff; border: 1px solid #e5e7eb; border-radius: 4px; padding: 2px 4px; font-size: 7px; color: #888; margin-bottom: 2px;}
+  .scr-ticket-tags { display: flex; flex-wrap: wrap; gap: 2px; margin-bottom: 2px;}
+  .scr-ticket-tags span { padding: 1px 4px; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 6px;}
+  .scr-ticket-tags span.on { background: linear-gradient(135deg, #5B8CFF, #7A5CFF); color: #fff; border-color: transparent;}
+
+  /* Success state */
+  .scr-success {
+    text-align: center;
+    padding: 14px 8px;
+    background: linear-gradient(180deg, #ecfdf5, #fff);
+    border-radius: 8px;
+    color: #16a34a;
+  }
+  .scr-success .icn { font-size: 28px;}
+  .scr-success .ttl { font-weight: 700; font-size: 10px; margin: 4px 0 2px;}
+  .scr-success .desc { font-size: 7px; color: #6b7280;}
+
+  /* QR code */
+  .scr-qr {
+    width: 64px; height: 64px;
+    margin: 6px auto;
+    background:
+      linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%) 0 0 / 8px 8px,
+      linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%) 4px 4px / 8px 8px,
+      #fff;
+    border-radius: 4px;
+    border: 4px solid #fff;
+    box-shadow: 0 0 0 1px #e5e7eb;
+  }
+
+  /* Footnote */
+  .footnote {
+    text-align: center;
+    padding: 30px 20px;
+    color: #888;
+    font-size: 12px;
+  }
+  .footnote a { color: #5B8CFF; text-decoration: none;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>邻里邦 AI 助手 <span class="beta">BETA</span> · 原型流程图</h1>
+  <span class="sep"></span>
+  <span class="subtitle">7 项物业服务 · 对话内闭环 · 单次办理 ≤4 次点击</span>
+  <div class="legend">
+    <div class="legend-item"><span class="legend-dot" style="background:#5B8CFF;"></span>入口</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#10b981;"></span>欢迎页</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span>缴费</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#3b82f6;"></span>报修</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#ec4899;"></span>访客</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#eab308;"></span>预缴</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#8b5cf6;"></span>装修</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#06b6d4;"></span>放行条</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#6366f1;"></span>车位</div>
+  </div>
+  <div class="actions">
+    <a href="https://du16888.github.io/linlibang-ai-search/" target="_blank" class="primary">打开在线原型 ↗</a>
+  </div>
+</div>
+
+<div class="canvas" id="canvas">
+  <svg class="connectors" id="connectors" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#7A5CFF"/>
+      </marker>
+      <marker id="arrow-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b"/>
+      </marker>
+      <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6"/>
+      </marker>
+      <marker id="arrow-pink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#ec4899"/>
+      </marker>
+      <marker id="arrow-yellow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#eab308"/>
+      </marker>
+      <marker id="arrow-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6"/>
+      </marker>
+      <marker id="arrow-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#06b6d4"/>
+      </marker>
+      <marker id="arrow-indigo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#6366f1"/>
+      </marker>
+      <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981"/>
+      </marker>
+    </defs>
+  </svg>
+
+  <!-- Stage labels -->
+  <div class="lane-label lane-entry" style="left:60px; top:40px;">① 入口</div>
+  <div class="lane-label lane-welcome" style="left:660px; top:40px;">② 欢迎页（两种模式）</div>
+  <div class="lane-label lane-pay" style="left:60px; top:780px;">③ 物业缴费</div>
+  <div class="lane-label lane-repair" style="left:60px; top:1340px;">④ 报修服务</div>
+  <div class="lane-label lane-visitor" style="left:60px; top:1900px;">⑤ 访客邀请</div>
+  <div class="lane-label lane-prepay" style="left:60px; top:2460px;">⑥ 预缴管理费</div>
+  <div class="lane-label lane-deco" style="left:2480px; top:780px;">⑦ 装修申请</div>
+  <div class="lane-label lane-pass" style="left:2480px; top:1340px;">⑧ 放行条申请</div>
+  <div class="lane-label lane-parking" style="left:2480px; top:1900px;">⑨ 车位管理</div>
+
+  <!-- ============ Lane 1: 入口 ============ -->
+  <div class="node" data-stage="entry" id="n-home" style="left:60px; top:100px;">
+    <div class="node-title">📱 首页 <span class="badge">起点</span></div>
+    <div class="node-screen">
+      <div class="scr">
+        <div class="scr-statusbar"><span>9:41</span><span>📶 100%</span></div>
+        <div class="scr-locrow">📍 阳光花园·1栋3单元<span class="scr-ai-pill">✨ AI 助手</span></div>
+        <div class="scr-card">本月物业费 ¥636.30 · 待缴 →</div>
+        <div class="scr-card" style="background:rgba(255,255,255,0.08);">最新通知 · 11月物业费账单已生成</div>
+        <div class="scr-grid">
+          <div>缴费</div><div>报修</div><div>访客</div><div>装修</div>
+          <div>放行</div><div>车位</div><div>公告</div><div>更多</div>
+        </div>
+        <div class="scr-nav"><span class="active">🏠 首页</span><span style="background:#5B8CFF;color:#fff;padding:1px 6px;border-radius:8px;">开门</span><span>👤 我的</span></div>
+      </div>
+    </div>
+    <div class="node-desc">点击右上 <b>AI 助手</b> 胶囊（带 sparkle 动效）打开对话面板</div>
+  </div>
+
+  <!-- ============ Lane 2: 欢迎 ============ -->
+  <div class="node" data-stage="welcome" id="n-mode2" style="left:660px; top:100px;">
+    <div class="node-title">💬 Mode 2 · 标签（默认） <span class="badge">推荐</span></div>
+    <div class="node-screen">
+      <div class="scr-chat">
+        <div class="scr-chat-header">小邦<span class="scr-chat-mode">轮播|<b>标签</b></span></div>
+        <div class="scr-chat-body">
+          <div class="scr-hero">
+            <div class="scr-hero-avatar"></div>
+            <div class="scr-hero-greet">hi，我是小邦，有问题都可以找我</div>
+          </div>
+          <div class="scr-suggest"><span>想看本月物业账单怎么交？<br><span class="quote">物业费如何缴纳？</span></span><span class="try-btn">去试试</span></div>
+          <div class="scr-suggest"><span>家里有东西坏了要报修？<br><span class="quote">水管漏水</span></span><span class="try-btn">去试试</span></div>
+          <div class="scr-suggest"><span>有亲友要来串门？<br><span class="quote">邀请访客</span></span><span class="try-btn">去试试</span></div>
+        </div>
+        <div class="scr-chips">
+          <span class="scr-chip">💳 缴费</span><span class="scr-chip">🔧 报修</span><span class="scr-chip">👥 访客</span><span class="scr-chip">📅 预缴</span><span class="scr-chip">🏗️ 装修</span><span class="scr-chip">📋 放行</span><span class="scr-chip">🚗 车位</span>
+        </div>
+        <div class="scr-input">我要查物业费</div>
+      </div>
+    </div>
+    <div class="node-desc">3 张高频卡 + 底部 7 服务芯片栏，点芯片或卡按钮直接发送问题</div>
+  </div>
+
+  <div class="node" data-stage="welcome" id="n-mode1" style="left:1000px; top:100px;">
+    <div class="node-title">🎠 Mode 1 · 轮播 <span class="badge">备选</span></div>
+    <div class="node-screen">
+      <div class="scr-chat">
+        <div class="scr-chat-header">小邦<span class="scr-chat-mode"><b>轮播</b>|标签</span></div>
+        <div class="scr-chat-body" style="padding:0;background:linear-gradient(180deg,#e8f0ff 0%,#f4f7ff 30%,#fff 60%);">
+          <div class="scr-mode1">
+            <div class="scr-mode1-hero">
+              <div class="star">❋</div>
+              <div class="title">邻里邦助手<span class="beta">BETA</span></div>
+              <div class="sub">欢迎向我提问</div>
+            </div>
+            <div class="scr-mode1-tabs">
+              <span class="active">物业缴费</span><span>装修申请</span><span>维修工单</span>
+            </div>
+            <div class="scr-mode1-cards">
+              <div class="scr-mode1-card"><div class="img">🛠️</div><div class="cat">维修</div><div class="ttl">维修工单</div><div class="try">试一试</div></div>
+              <div class="scr-mode1-card center"><div class="img">🏠</div><div class="cat" style="background:#dcfce7;color:#16a34a;">物业服务</div><div class="ttl">物业缴费</div><div class="try">试一试</div></div>
+              <div class="scr-mode1-card"><div class="img">🏗️</div><div class="cat" style="background:#ede9fe;color:#7c3aed;">装修</div><div class="ttl">装修申请</div><div class="try">试一试</div></div>
+            </div>
+            <div class="scr-mode1-dots"><i class="active"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+        </div>
+        <div class="scr-input">有问题都可以咨询我</div>
+      </div>
+    </div>
+    <div class="node-desc">天蓝渐变 hero + tab 横滚 + 3 卡同屏（中心放大），点击"试一试"或卡片直接发送</div>
+  </div>
+
+  <!-- ============ Lane 3: 物业缴费 ============ -->
+  <div class="node" data-stage="pay" id="n-pay-1" style="left:60px; top:840px;">
+    <div class="node-title">💳 物业费 · 出账</div>
+    <div class="node-screen">
+      <div class="scr-chat">
+        <div class="scr-chat-header">小邦</div>
+        <div class="scr-chat-body">
+          <div class="scr-bubble user">物业费如何缴纳？</div>
+          <div class="scr-bubble bot">为您查到本月账单 👇</div>
+          <div class="scr-card2">
+            <b>💰 物业费余额</b>
+            <div class="row"><span>物业管理费</span><span>¥380.00</span></div>
+            <div class="row"><span>公共能耗</span><span>¥56.30</span></div>
+            <div class="row"><span>停车位</span><span>¥200.00</span></div>
+            <div class="row" style="border-top:1px dashed #e5e7eb;padding-top:2px;font-weight:700;"><span>合计</span><span style="color:#c9a86a;">¥636.30</span></div>
+            <div class="scr-btnrow"><div class="scr-btn">立即缴费</div><div class="scr-btn sec">查看明细</div></div>
+          </div>
+        </div>
+        <div class="scr-input">说点什么…</div>
+      </div>
+    </div>
+    <div class="node-desc">AI 自动调取业主当月账单明细，主按钮"立即缴费"</div>
+  </div>
+
+  <div class="node" data-stage="pay" id="n-pay-2" style="left:380px; top:840px;">
+    <div class="node-title">💳 物业费 · 选支付</div>
+    <div class="node-screen">
+      <div class="scr-chat">
+        <div class="scr-chat-header">小邦</div>
+        <div class="scr-chat-body">
+          <div class="scr-bubble bot">请选择支付方式</div>
+          <div class="scr-card2">
+            <b>💳 选择支付方式</b>
+            <div style="display:flex;flex-direction:column;gap:2px;margin-top:3px;">
+              <div class="scr-chip" style="text-align:center;">微信支付（推荐）</div>
+              <div class="scr-chip" style="text-align:center;">支付宝</div>
+              <div class="scr-chip" style="text-align:center;">银联卡支付</div>
+              <div class="scr-chip" style="text-align:center;">积分抵扣（剩 320 分）</div>
+            </div>
+          </div>
+        </div>
+        <div class="scr-input">说点什么…</div>
+      </div>
+    </div>
+    <div class="node-desc">4 种支付方式列表选择（含积分抵扣）</div>
+  </div>
+
+  <div class="node" data-stage="pay" id="n-pay-3" style="left:700px; top:840px;">
+    <div class="node-title">💳 物业费 · 支付完成</div>
+    <div class="node-screen">
+      <div class="scr-chat">
+        <div class="scr-chat-header">小邦</div>
+        <div class="scr-chat-body">
+          <div class="scr-bubble bot">正在通过 <b>微信支付</b> 完成支付...</div>
+          <div class="scr-success">
+            <div class="icn">✅</div>
+            <div class="ttl">缴费成功</div>
+            <div class="desc">¥636.30 · 流水号 WX2026051100123<br>电子发票已发送至您邮箱</div>
+          </div>
+          <div class="scr-bubble bot">还有什么可以帮您？</div>
+        </div>
+        <div class="scr-input">说点什么…</div>
+      </div>
+    </div>
+    <div class="node-desc">支付成功页 + 电子发票自动开具，闭环结束</div>
+  </div>
+
+  <div class="node" data-stage="end" id="n-pay-end" style="left:1020px; top:840px;">
+    <div class="node-title">✅ 结束 · 继续对话</div>
+    <div class="node-screen">
+      <div class="scr-chat" style="justify-content:center;">
+        <div style="text-align:center;padding:20px;">
+          <div style="font-size:30px;">🎉</div>
+          <div style="font-weight:700;margin-top:8px;font-size:11px;">服务办理完成</div>
+          <div style="font-size:8px;color:#888;margin-top:4px;">业主可继续追问其他问题<br>或关闭对话窗返回首页</div>
+          <div class="scr-btn" style="margin-top:10px;display:inline-block;padding:3px 8px;font-size:7px;">查看缴费记录</div>
+        </div>
+      </div>
+    </div>
+    <div class="node-desc">所有服务最终汇聚至此 · 单次办理 ≤4 步</div>
+  </div>
+
+  <!-- ============ Lane 4: 报修 ============ -->
+  <div class="node" data-stage="repair" id="n-repair-1" style="left:60px; top:1400px;">
+    <div class="node-title">🔧 报修 · 工单表单</div>
+    <div class="node-screen">
+      <div class="scr-chat">
+        <div class="scr-chat-header">小邦</div>
+        <div class="scr-chat-body">
+          <div class="scr-bubble user">我要报修，水管漏水</div>
+          <div class="scr-bubble bot">好的，已为您打开报修工单</div>
+          <div class="scr-ticket">
+            <div class="scr-ticket-title">🛠️ 报修工单</div>
+            <div class="scr-ticket-row">阳光花园·1栋3单元301</div>
+            <div style="font-size:6px;color:#888;margin-bottom:2px;">问题类型</div>
+            <div class="scr-ticket-tags">
+              <span class="on">水管漏水</span><span>电路</span><span>门窗</span><span>家电</span>
+            </div>
+            <div class="scr-ticket-row">问题描述（语音或拍照可选）</div>
+            <div class="scr-btn">提交工单</div>
+          </div>
+        </div>
+        <div class="scr-input">说点什么…</div>
+      </div>
+    </div>
+    <div class="node-desc">表单内嵌对话，AI 预填地址 + 选中问题类型</div>
+  </div>
+
+  <div class="node" data-stage="repair" id="n-repair-2" style="left:380px; top:1400px;">
+    <div class="node-title">🔧 报修 · 派单中</div>
+    <div class="node-screen">
+      <div class="scr-chat">
+        <div class="scr-chat-header">小邦</div>
+        <div class="scr-chat-body">
+          <div class="scr-bubble bot">正在为您派单... 📡</div>
+          <div class="scr-success" style="background:linear-gradient(180deg,#fff7ed,#fff);color:#d97706;">
+            <div class="icn">👷</div>
+            <div class="ttl">已派单</div>
+            <div class="desc">工单号 WX20260511001<br>师傅王伟（评分 4.9） 预计 30 分钟内上门</div>
+          </div>
+          <div class="scr-btnrow"><div class="scr-btn sec">取消工单</div><div class="scr-btn">联系师傅</div></div>
+        </div>
+        <div class="scr-input">说点什么…</div>
+      </div>
+    </div>
+    <div class="node-desc">自动派单 → 师傅信息卡片 → 可联系/取消</div>
+  </div>
+
+  <div class="node" data-stage="repair" id="n-repair-3" style="left:700px; top:1400px;">
+    <div class="node-title">🔧 报修 · 进度追踪</div>
+    <div class="node-screen">
+      <div class="scr-chat">
+        <div class="scr-chat-header">小邦</div>
+        <div class="scr-chat-body">
+          <div class="scr-bubble bot">您的工单进度 👇</div>
+          <div class="scr-card2">
+            <b>📊 实时进度</b>
+            <div style="display:flex;gap:4px;margin-top:3px;font-size:6px;">
+              <div style="flex:1;text-align:center;color:#16a34a;">●<br>提交</div>
+              <div style="flex:1;text-align:center;color:#16a34a;">●<br>派单</div>
+              <div style="flex:1;text-align:center;color:#d97706;">●<br>上门</div>
+              <div style="flex:1;text-align:center;color:#ccc;">○<br>完成</div>
+            </div>
+            <div style="font-size:6px;color:#888;margin-top:3px;">师傅已出发，预计 18 分钟到达</div>
+          </div>
+        </div>
+        <div class="scr-input">说点什么…</div>
+      </div>
+    </div>
+    <div class="node-desc">4 步进度条 · 业主可随时回到对话窗查询</div>
+  </div>
+
+  <!-- ============ Lane 5: 访客 ============ -->
+  <div class="node" data-stage="visitor" id="n-visitor-1" style="left:60px; top:1960px;">
+    <div class="node-title">👥 访客 · 信息填写</div>
+    <div class="node-screen">
+      <div class="scr-chat">
+        <div class="scr-chat-header">小邦</div>
+        <div class="scr-chat-body">
+          <div class="scr-bubble user">我要邀请访客</div>
+          <div class="scr-bubble bot">好的，请填写访客信息</div>
+          <div class="scr-ticket">
+            <div class="scr-ticket-title">👥 访客邀请</div>
+            <div class="scr-ticket-row">访客姓名：张先生</div>
+            <div class="scr-ticket-row">手机号：138****8888</div>
+            <div class="scr-ticket-row">来访时间：今天 14:00-18:00</div>
+            <div class="scr-btn">生成访客码</div>
+          </div>
+        </div>
+        <div class="scr-input">说点什么…</div>
+      </div>
+    </div>
+    <div class="node-desc">姓名/电话/来访时段，对话内填写无跳页</div>
+  </div>
+
+  <div class="node" data-stage="visitor" id="n-visitor-2" style="left:380px; top:1960px;">
+    <div class="node-title">👥 访客 · 二维码</div>
+    <div class="node-screen">
+      <div class="scr-chat">
+        <div class="scr-chat-header">小邦</div>
+        <div class="scr-chat-body">
+          <div class="scr-bubble bot">已生成访客通行码 ✨</div>
+          <div class="scr-card2" style="text-align:center;">
+            <b>🎫 张先生 · 访客码</b>
+            <div class="scr-qr"></div>
+            <div style="font-size:7px;color:#888;">有效期至今晚 22:00</div>
+            <div class="scr-btnrow"><div class="scr-btn sec">微信分享</div><div class="scr-btn">短信发送</div></div>
+          </div>
+        </div>
+        <div class="scr-input">说点什么…</div>
+      </div>
+    </div>
+    <div class="node-desc">QR 码 + 一键分享给访客，门禁/闸机扫码通行</div>
+  </div>
+
+  <!-- ============ Lane 6: 预缴 ============ -->
+  <div class="node" data-stage="prepay" id="n-prepay-1" style="left:60px; top:2520px;">
+    <div class="node-title">📅 预缴 · 选择月数</div>
+    <div class="node-screen">
+      <div class="scr-chat">
+        <div class="scr-chat-header">小邦</div>
+        <div class="scr-chat-body">
+          <div class="scr-bubble user">我要预缴管理费</div>
+          <div class="scr-bubble bot">预缴享 9.5 折优惠 🎁<br>请选择预缴月数</div>
+          <div class="scr-card2">
+            <b>📅 预缴方案</b>
+            <div class="scr-ticket-tags" style="margin-top:3px;">
+              <span>6 个月</span><span class="on">12 个月（9.5折）</span><span>24 个月（9折）</span>
+            </div>
+            <div class="row" style="margin-top:4px;font-weight:700;"><span>应付</span><span style="color:#d97706;">¥7,254.00</span></div>
+            <div style="font-size:6px;color:#888;">原价 ¥7,635.60，立减 ¥381.60</div>
+          </div>
+        </div>
+        <div class="scr-input">说点什么…</div>
+      </div>
+    </div>
+    <div class="node-desc">阶梯折扣 · 最长 24 月</div>
+  </div>
+
+  <div class="node" data-stage="prepay" id="n-prepay-2" style="left:380px; top:2520px;">
+    <div class="node-title">📅 预缴 · 完成</div>
+    <div class="node-screen">
+      <div class="scr-chat">
+        <div class="scr-chat-header">小邦</div>
+        <div class="scr-chat-body">
+          <div class="scr-bubble bot">正在通过 <b>支付宝</b> 完成预缴...</div>
+          <div class="scr-success">
+            <div class="icn">🎉</div>
+            <div class="ttl">预缴成功</div>
+            <div class="desc">已预缴 12 个月 ¥7,254<br>有效期至 2027-05-31<br>积分 +725 已入账</div>
+          </div>
+        </div>
+        <div class="scr-input">说点什么…</div>
+      </div>
+    </div>
+    <div class="node-desc">余额自动月扣 · 积分实时入账</div>
+  </div>
+
+  <!-- ============ Lane 7: 装修 ============ -->
+  <div class="node" data-stage="deco" id="n-deco-1" style="left:2480px; top:840px;">
+    <div class="node-title">🏗️ 装修 · 申请表</div>
+    <div class="node-screen">
+      <div class="scr-chat">
+        <div class="scr-chat-header">小邦</div>
+        <div class="scr-chat-body">
+          <div class="scr-bubble user">我要申请装修</div>
+          <div class="scr-bubble bot">请填写装修申请单</div>
+          <div class="scr-ticket">
+            <div class="scr-ticket-title">🏗️ 装修申请</div>
+            <div class="scr-ticket-row">装修类型</div>
+            <div class="scr-ticket-tags"><span class="on">整装</span><span>局部</span><span>水电改造</span></div>
+            <div class="scr-ticket-row">开工时间：2026-05-20</div>
+            <div class="scr-ticket-row">押金 ¥2,000（线上支付）</div>
+            <div class="scr-btn">提交申请</div>
+          </div>
+        </div>
+        <div class="scr-input">说点什么…</div>
+      </div>
+    </div>
+    <div class="node-desc">含押金线上代收，物业审核 5 个工作日</div>
+  </div>
+
+  <div class="node" data-stage="deco" id="n-deco-2" style="left:2800px; top:840px;">
+    <div class="node-title">🏗️ 装修 · 审核中</div>
+    <div class="node-screen">
+      <div class="scr-chat">
+        <div class="scr-chat-header">小邦</div>
+        <div class="scr-chat-body">
+          <div class="scr-bubble bot">正在提交装修申请到物业审核...</div>
+          <div class="scr-success" style="background:linear-gradient(180deg,#f3e8ff,#fff);color:#7c3aed;">
+            <div class="icn">📨</div>
+            <div class="ttl">已提交审核</div>
+            <div class="desc">单号 DCR2026051100023<br>预计 1-3 个工作日反馈<br>押金已托管</div>
+          </div>
+        </div>
+        <div class="scr-input">说点什么…</div>
+      </div>
+    </div>
+    <div class="node-desc">通过后短信通知 + 对话窗推送结果</div>
+  </div>
+
+  <!-- ============ Lane 8: 放行条 ============ -->
+  <div class="node" data-stage="pass" id="n-pass-1" style="left:2480px; top:1400px;">
+    <div class="node-title">📋 放行条 · 填写</div>
+    <div class="node-screen">
+      <div class="scr-chat">
+        <div class="scr-chat-header">小邦</div>
+        <div class="scr-chat-body">
+          <div class="scr-bubble user">我要办放行条</div>
+          <div class="scr-bubble bot">请上传物品照片并填写</div>
+          <div class="scr-ticket">
+            <div class="scr-ticket-title">📋 放行条申请</div>
+            <div class="scr-ticket-row">物品：办公椅 ×2</div>
+            <div class="scr-ticket-row">出门时间：今天 16:00</div>
+            <div style="display:flex;gap:3px;margin:2px 0;">
+              <div style="width:24px;height:24px;background:#f3f4f7;border-radius:3px;font-size:8px;text-align:center;line-height:24px;">📷</div>
+              <div style="width:24px;height:24px;background:#f3f4f7;border-radius:3px;font-size:8px;text-align:center;line-height:24px;">📷</div>
+            </div>
+            <div class="scr-btn">提交审核</div>
+          </div>
+        </div>
+        <div class="scr-input">说点什么…</div>
+      </div>
+    </div>
+    <div class="node-desc">支持多张物品照片上传</div>
+  </div>
+
+  <div class="node" data-stage="pass" id="n-pass-2" style="left:2800px; top:1400px;">
+    <div class="node-title">📋 放行条 · 电子码</div>
+    <div class="node-screen">
+      <div class="scr-chat">
+        <div class="scr-chat-header">小邦</div>
+        <div class="scr-chat-body">
+          <div class="scr-bubble bot">放行码已生成 ✅</div>
+          <div class="scr-card2" style="text-align:center;">
+            <b>🎫 放行码 #PS20260511</b>
+            <div class="scr-qr"></div>
+            <div style="font-size:7px;color:#888;">出门时向保安出示</div>
+            <div style="font-size:6px;color:#06b6d4;">有效期至今晚 22:00</div>
+          </div>
+        </div>
+        <div class="scr-input">说点什么…</div>
+      </div>
+    </div>
+    <div class="node-desc">秒级生成放行码，保安扫码即放行</div>
+  </div>
+
+  <!-- ============ Lane 9: 车位 ============ -->
+  <div class="node" data-stage="parking" id="n-park-1" style="left:2480px; top:1960px;">
+    <div class="node-title">🚗 车位 · 选项</div>
+    <div class="node-screen">
+      <div class="scr-chat">
+        <div class="scr-chat-header">小邦</div>
+        <div class="scr-chat-body">
+          <div class="scr-bubble user">我要管理车位</div>
+          <div class="scr-bubble bot">为您查到车位信息</div>
+          <div class="scr-card2">
+            <b>🚗 我的车位</b>
+            <div class="row"><span>位号</span><span>B2-218</span></div>
+            <div class="row"><span>车牌</span><span>京A·12345</span></div>
+            <div class="row"><span>到期</span><span style="color:#dc2626;">2026-05-20 (剩 9 天)</span></div>
+            <div class="scr-btnrow"><div class="scr-btn sec">绑定车牌</div><div class="scr-btn">续费</div></div>
+          </div>
+        </div>
+        <div class="scr-input">说点什么…</div>
+      </div>
+    </div>
+    <div class="node-desc">余位/续费/绑车牌三合一管理</div>
+  </div>
+
+  <div class="node" data-stage="parking" id="n-park-2" style="left:2800px; top:1960px;">
+    <div class="node-title">🚗 车位 · 续费完成</div>
+    <div class="node-screen">
+      <div class="scr-chat">
+        <div class="scr-chat-header">小邦</div>
+        <div class="scr-chat-body">
+          <div class="scr-bubble bot">续费成功</div>
+          <div class="scr-success" style="background:linear-gradient(180deg,#eef2ff,#fff);color:#4f46e5;">
+            <div class="icn">🅿️</div>
+            <div class="ttl">续费成功</div>
+            <div class="desc">车位 B2-218 已续 12 个月<br>新到期日 2027-05-20<br>¥2,400 已支付</div>
+          </div>
+        </div>
+        <div class="scr-input">说点什么…</div>
+      </div>
+    </div>
+    <div class="node-desc">车牌识别系统自动同步新有效期</div>
+  </div>
+
+</div>
+
+<div class="footnote">
+  邻里邦 AI 助手 · 原型流程图 · 共 19 个页面状态 · 单次办理 ≤4 次点击<br>
+  在线 Demo: <a href="https://du16888.github.io/linlibang-ai-search/" target="_blank">du16888.github.io/linlibang-ai-search</a>
+</div>
+
+<script>
+  /* 节点之间画 SVG 折线（贝塞尔） */
+  const FLOWS = [
+    // 入口 -> 欢迎
+    { from:'n-home', to:'n-mode2', color:'#7A5CFF', marker:'arrow', label:'点击 AI 助手' },
+    { from:'n-mode2', to:'n-mode1', color:'#10b981', marker:'arrow-green', label:'切换模式', dash:true },
+
+    // 欢迎 -> 缴费链路
+    { from:'n-mode2', to:'n-pay-1', color:'#f59e0b', marker:'arrow-orange', label:'查物业费' },
+    { from:'n-pay-1', to:'n-pay-2', color:'#f59e0b', marker:'arrow-orange', label:'立即缴费' },
+    { from:'n-pay-2', to:'n-pay-3', color:'#f59e0b', marker:'arrow-orange', label:'选支付方式' },
+    { from:'n-pay-3', to:'n-pay-end', color:'#6b7280', marker:'arrow', label:'完成' },
+
+    // 欢迎 -> 报修
+    { from:'n-mode2', to:'n-repair-1', color:'#3b82f6', marker:'arrow-blue', label:'报修' },
+    { from:'n-repair-1', to:'n-repair-2', color:'#3b82f6', marker:'arrow-blue', label:'提交工单' },
+    { from:'n-repair-2', to:'n-repair-3', color:'#3b82f6', marker:'arrow-blue', label:'查进度', dash:true },
+
+    // 欢迎 -> 访客
+    { from:'n-mode2', to:'n-visitor-1', color:'#ec4899', marker:'arrow-pink', label:'邀请访客' },
+    { from:'n-visitor-1', to:'n-visitor-2', color:'#ec4899', marker:'arrow-pink', label:'生成 QR' },
+
+    // 欢迎 -> 预缴
+    { from:'n-mode2', to:'n-prepay-1', color:'#eab308', marker:'arrow-yellow', label:'预缴管理费' },
+    { from:'n-prepay-1', to:'n-prepay-2', color:'#eab308', marker:'arrow-yellow', label:'支付' },
+
+    // 欢迎 -> 装修
+    { from:'n-mode2', to:'n-deco-1', color:'#8b5cf6', marker:'arrow-purple', label:'装修申请' },
+    { from:'n-deco-1', to:'n-deco-2', color:'#8b5cf6', marker:'arrow-purple', label:'提交' },
+
+    // 欢迎 -> 放行条
+    { from:'n-mode2', to:'n-pass-1', color:'#06b6d4', marker:'arrow-cyan', label:'放行条' },
+    { from:'n-pass-1', to:'n-pass-2', color:'#06b6d4', marker:'arrow-cyan', label:'审核通过' },
+
+    // 欢迎 -> 车位
+    { from:'n-mode2', to:'n-park-1', color:'#6366f1', marker:'arrow-indigo', label:'车位管理' },
+    { from:'n-park-1', to:'n-park-2', color:'#6366f1', marker:'arrow-indigo', label:'续费' },
+
+    // 所有终点回汇 -> 结束
+    { from:'n-repair-3', to:'n-pay-end', color:'#9ca3af', marker:'arrow', dash:true },
+    { from:'n-visitor-2', to:'n-pay-end', color:'#9ca3af', marker:'arrow', dash:true },
+    { from:'n-prepay-2', to:'n-pay-end', color:'#9ca3af', marker:'arrow', dash:true },
+    { from:'n-deco-2', to:'n-pay-end', color:'#9ca3af', marker:'arrow', dash:true },
+    { from:'n-pass-2', to:'n-pay-end', color:'#9ca3af', marker:'arrow', dash:true },
+    { from:'n-park-2', to:'n-pay-end', color:'#9ca3af', marker:'arrow', dash:true },
+  ];
+
+  function drawConnectors() {
+    const svg = document.getElementById('connectors');
+    const canvas = document.getElementById('canvas');
+    svg.setAttribute('width', canvas.scrollWidth);
+    svg.setAttribute('height', canvas.scrollHeight);
+
+    // 清除旧线
+    svg.querySelectorAll('path, text').forEach(n=>n.remove());
+
+    FLOWS.forEach(f => {
+      const a = document.getElementById(f.from);
+      const b = document.getElementById(f.to);
+      if (!a || !b) return;
+
+      const aRect = a.getBoundingClientRect();
+      const bRect = b.getBoundingClientRect();
+      const cRect = canvas.getBoundingClientRect();
+
+      // 计算最佳出/入点
+      const aCx = a.offsetLeft + a.offsetWidth/2;
+      const aCy = a.offsetTop + a.offsetHeight/2;
+      const bCx = b.offsetLeft + b.offsetWidth/2;
+      const bCy = b.offsetTop + b.offsetHeight/2;
+
+      let x1, y1, x2, y2;
+      const dx = bCx - aCx, dy = bCy - aCy;
+
+      // 选择最近的边作为锚点
+      if (Math.abs(dx) > Math.abs(dy)) {
+        // 横向连
+        if (dx > 0) { x1 = a.offsetLeft + a.offsetWidth; x2 = b.offsetLeft; }
+        else { x1 = a.offsetLeft; x2 = b.offsetLeft + b.offsetWidth; }
+        y1 = aCy; y2 = bCy;
+      } else {
+        // 纵向连
+        if (dy > 0) { y1 = a.offsetTop + a.offsetHeight; y2 = b.offsetTop; }
+        else { y1 = a.offsetTop; y2 = b.offsetTop + b.offsetHeight; }
+        x1 = aCx; x2 = bCx;
+      }
+
+      // 贝塞尔
+      const mx = (x1 + x2) / 2;
+      const my = (y1 + y2) / 2;
+      const cp1x = Math.abs(dx) > Math.abs(dy) ? mx : x1;
+      const cp1y = Math.abs(dx) > Math.abs(dy) ? y1 : my;
+      const cp2x = Math.abs(dx) > Math.abs(dy) ? mx : x2;
+      const cp2y = Math.abs(dx) > Math.abs(dy) ? y2 : my;
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`);
+      path.setAttribute('stroke', f.color);
+      path.setAttribute('stroke-width', '2.2');
+      path.setAttribute('fill', 'none');
+      if (f.dash) path.setAttribute('stroke-dasharray', '6 5');
+      path.setAttribute('marker-end', `url(#${f.marker})`);
+      path.setAttribute('opacity', '0.85');
+      svg.appendChild(path);
+
+      // 标签
+      if (f.label) {
+        const lblBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        const lblText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        const lx = (x1 + x2) / 2;
+        const ly = (y1 + y2) / 2 - 4;
+        lblText.setAttribute('x', lx);
+        lblText.setAttribute('y', ly);
+        lblText.setAttribute('text-anchor', 'middle');
+        lblText.setAttribute('fill', f.color);
+        lblText.setAttribute('font-size', '12');
+        lblText.setAttribute('font-weight', '600');
+        lblText.setAttribute('font-family', '-apple-system, "PingFang SC", sans-serif');
+        lblText.textContent = f.label;
+        svg.appendChild(lblText);
+      }
+    });
+  }
+
+  window.addEventListener('load', () => {
+    drawConnectors();
+    setTimeout(drawConnectors, 100); // 双保险，等 DOM 完全 settle
+  });
+  window.addEventListener('resize', drawConnectors);
+</script>
+
+</body>
+</html>
